@@ -1,0 +1,39 @@
+/* 版面概念：米黃方格手帳．手機單欄＋底部分頁，980px 以上改左側目錄 */
+:root{
+  --paper:#FAF4E4; --grid:#EADFC4; --surface:#FFFDF6; --surface2:#F4ECD8;
+  --ink:#332E26; --muted:#7A6F5C; --line:#DED0B2;
+  --blue:#2F6FD0; --blue-soft:#DCE8FA;
+  --main:#6B4F2A; --on-main:#FFFDF6;
+  --red:#D1543F; --red-soft:#FAE2DB;
+  --green:#5F8B57; --green-soft:#E2EEDE;
+  --hi:#F7D257; --hi-soft:#FCEFC2; --hi-ink:#8A6A10;
+  --tape:#BFD9E6; --mask:#D9CCAE;
+  --good:#3F7A46; --bad:#B8422F;
+  --sans:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  --hand:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#15130F; --grid:#1E1B15; --surface:#211E17; --surface2:#2B271E;
+  --ink:#EFE7D5; --muted:#A99C84; --line:#3D3729;
+  --blue:#7FAEF2; --blue-soft:#1E2C44;
+  --main:#E2C393; --on-main:#2A2116;
+  --red:#F0917E; --red-soft:#3C241E;
+  --green:#8FBE86; --green-soft:#1F2E1D;
+  --hi:#F7D257; --hi-soft:#3B3014; --hi-ink:#F0CB64;
+  --tape:#35505C; --mask:#4A4334;
+  --good:#7FC08A; --bad:#F08E78;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#15130F; --grid:#1E1B15; --surface:#211E17; --surface2:#2B271E;
+  --ink:#EFE7D5; --muted:#A99C84; --line:#3D3729;
+  --blue:#7FAEF2; --blue-soft:#1E2C44;
+  --main:#E2C393; --on-main:#2A2116;
+  --red:#F0917E; --red-soft:#3C241E;
+  --green:#8FBE86; --green-soft:#1F2E1D;
+  --hi:#F7D257; --hi-soft:#3B3014; --hi-ink:#F0CB64;
+  --tape:#35505C; --mask:#4A4334;
+  --good:#7FC08A; --bad:#F08E78;
+  color-scheme:dark;
+}

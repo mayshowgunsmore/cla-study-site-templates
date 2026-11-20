@@ -1,0 +1,19 @@
+/* Layout: a glass slide in Warriors colors — royal blue ink, gold label band, slate text on a cool grid. One column everywhere; start button at the bottom of setup. */
+:root{
+  --bg:#eef1f6; --grid:#e1e6ee; --surface:#ffffff; --surface2:#f1f4f9; --ink:#1b2433; --muted:#5c6678; --line:#d5dce7;
+  --hema:#1d428a; --hema-soft:#e2e9f6; --eosin:#2563c9; --eosin-soft:#e1ecfb;
+  --label:#ffc72c; --label-ink:#1b1606; --label-soft:#fff2c7;
+  --good:#18794a; --good-soft:#dcf1e5; --bad:#bf3329; --bad-soft:#fbe1de; --warn:#7d5a00; --warn-soft:#fdf0cc;
+  --hand:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif; --body:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10141c; --grid:#171c26; --surface:#1a2030; --surface2:#232b3d; --ink:#e8edf5; --muted:#a2acbf; --line:#323c52;
+  --hema:#7fa6ee; --hema-soft:#1f2f52; --eosin:#8fb8ff; --eosin-soft:#1d3157;
+  --label:#ffc72c; --label-ink:#1b1606; --label-soft:#3a3112;
+  --good:#6fd39f; --good-soft:#163a28; --bad:#f39088; --bad-soft:#46211e; --warn:#f1c967; --warn-soft:#3b3118; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10141c; --grid:#171c26; --surface:#1a2030; --surface2:#232b3d; --ink:#e8edf5; --muted:#a2acbf; --line:#323c52;
+  --hema:#7fa6ee; --hema-soft:#1f2f52; --eosin:#8fb8ff; --eosin-soft:#1d3157;
+  --label:#ffc72c; --label-ink:#1b1606; --label-soft:#3a3112;
+  --good:#6fd39f; --good-soft:#163a28; --bad:#f39088; --bad-soft:#46211e; --warn:#f1c967; --warn-soft:#3b3118; color-scheme:dark}

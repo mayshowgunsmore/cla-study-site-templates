@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>__TITLE__</title>
+<style id="theme">
+__THEME__
+</style>
+<style id="base">
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.75;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:26px 26px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+a{color:var(--blue)}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.35}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+
+/* 頂列 */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:2px solid var(--line)}
+.top-in{display:flex;align-items:center;gap:8px;min-height:52px;padding-block:6px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top-title{font-weight:900;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ibtn{min-width:44px;min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);font-weight:700;font-size:.9rem;white-space:nowrap}
+.ibtn.on{background:var(--hi);border-color:var(--hi-ink);color:var(--on-hi)}
+
+/* 外框 */
+.shell{display:block}
+.side{display:none}
+.wrap{max-width:860px;margin:0 auto;padding-block:22px 110px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.stack{display:flex;flex-direction:column;gap:22px}
+
+/* 底部分頁 */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--surface);border-top:2px solid var(--line);
+  display:grid;grid-template-columns:repeat(var(--tabs,6),1fr);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tabs button{min-height:54px;border:0;background:none;font-size:.82rem;font-weight:700;color:var(--muted);border-top:3px solid transparent;margin-top:-2px}
+.tabs button.on{color:var(--blue);border-top-color:var(--blue)}
+
+/* 卡片 */
+.card{position:relative;background:var(--surface);border:1.5px solid var(--line);border-radius:4px;box-shadow:2px 3px 0 var(--line);padding:18px 16px}
+.tape::before{content:"";position:absolute;top:-11px;left:22px;width:76px;height:22px;background:var(--tape);opacity:.85;transform:rotate(-2.5deg);
+  background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.3) 0 5px,transparent 5px 10px)}
+.hero h1{font-size:1.7rem;font-weight:900;letter-spacing:.01em}
+.hero h1 .mk{background:linear-gradient(transparent 62%,var(--hi) 62%,var(--hi) 92%,transparent 92%)}
+.eyebrow{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:.74rem;color:var(--muted);letter-spacing:.06em;margin-bottom:6px}
+.hero p{margin:8px 0 0;color:var(--muted)}
+.folds{margin-top:12px;display:flex;flex-direction:column}
+.folds details{border-top:1.5px dashed var(--line)}
+.folds summary{min-height:44px;display:flex;align-items:center;font-weight:800;cursor:pointer;list-style:none}
+.folds summary::-webkit-details-marker{display:none}
+.folds summary::before{content:"＋";color:var(--blue);margin-right:8px;font-family:var(--mono)}
+.folds details[open] summary::before{content:"－"}
+.folds .body{padding:0 0 14px;font-size:.95rem}
+.folds .body ul{margin:6px 0;padding-left:1.2em}
+.prompt{white-space:pre-wrap;font-family:var(--mono);font-size:.78rem;line-height:1.6;background:var(--surface2);border:1.5px solid var(--line);border-radius:4px;padding:12px;max-height:320px;overflow:auto;margin:8px 0 0}
+
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stat .lab{font-size:.78rem;font-weight:800;color:var(--muted);letter-spacing:.05em}
+.stat .num{font-family:var(--mono);font-weight:800;font-size:2.1rem;line-height:1.15;color:var(--red);font-variant-numeric:tabular-nums}
+.stat .num.b{color:var(--blue)}
+.stat .sub{font-size:.8rem;color:var(--muted)}
+.linkbtn{background:none;border:0;padding:0;min-height:44px;color:var(--blue);font-weight:700;font-size:.85rem;text-decoration:underline}
+.daterow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.daterow input{font:inherit;min-height:44px;padding:0 8px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface2);color:var(--ink);max-width:100%}
+
+.pill{min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);font-weight:700;font-size:.9rem}
+.pill.on{background:var(--hi);border-color:var(--hi-ink);color:var(--on-hi)}
+.pill.primary{background:var(--main);border-color:var(--main);color:var(--on-main)}
+.pill.off{color:var(--muted);background:var(--surface2);border-style:dashed}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+
+.chlist{display:grid;gap:14px;grid-template-columns:1fr}
+.chcard{display:block;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:4px;box-shadow:2px 3px 0 var(--line);padding:14px 16px}
+.chcard .no{font-family:var(--hand);font-weight:800;color:var(--red);font-size:.85rem}
+.chcard .t{font-weight:800;font-size:1.08rem;display:block}
+.chcard .en{display:block;font-size:.8rem;color:var(--muted)}
+.chcard .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.bar{height:6px;background:var(--surface2);border-radius:99px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue)}
+
+.tag{display:inline-block;border-radius:4px;font-size:.7rem;font-weight:800;padding:1px 7px;line-height:1.7;white-space:normal}
+.tag.hl{background:var(--hi-soft);color:var(--hi-ink)}
+.tag.hw{background:var(--blue-soft);color:var(--blue)}
+.tag.rd{background:var(--red-soft);color:var(--red)}
+.tag.gn{background:var(--green-soft);color:var(--green)}
+.tag.pg{background:var(--surface2);color:var(--muted);font-family:var(--mono)}
+
+.pagehead h2{font-size:1.4rem;font-weight:900}
+.pagehead .en{color:var(--muted);font-size:.85rem}
+.plain{border-left:5px solid var(--blue);background:var(--blue-soft);border-radius:0 4px 4px 0;padding:10px 14px;font-size:.95rem}
+.plain b{color:var(--blue)}
+body.mask .plain{display:none}
+.note{border-left:5px solid var(--red);background:var(--red-soft);border-radius:0 4px 4px 0;padding:8px 12px;font-size:.88rem;margin-top:10px}
+.note.g{border-color:var(--green);background:var(--green-soft)}
+.note.b{border-color:var(--blue);background:var(--blue-soft)}
+
+/* 器械卡 */
+.inst{display:grid;gap:12px;grid-template-columns:1fr}
+.photo{display:block;width:100%;padding:8px;border:1.5px solid var(--line);border-radius:4px;background:var(--photo);min-height:44px}
+.photo img{display:block;margin:0 auto;max-width:100%;height:auto;max-height:230px;width:auto}
+.inst h3{font-size:1.12rem;font-weight:800}
+.inst h3 .zh{font-weight:700}
+.inst dl{margin:8px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.95rem}
+.inst dt{font-weight:800;color:var(--muted);font-size:.8rem;padding-top:3px;white-space:nowrap}
+.inst dd{margin:0;min-width:0}
+.inst dd ul{margin:0;padding-left:1.1em}
+.inst .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.inst details{margin-top:8px;font-size:.85rem}
+.inst details summary{min-height:44px;display:flex;align-items:center;color:var(--blue);font-weight:700;cursor:pointer}
+.inst details p{margin:0 0 6px;color:var(--muted)}
+.star{min-height:44px;min-width:44px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);font-size:.82rem;font-weight:700;padding:0 12px}
+.star.on{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+.k{border-radius:3px;padding:0 2px;background:linear-gradient(transparent 68%,var(--hi-soft) 68%)}
+body.mask .k{background:var(--mask);color:transparent;cursor:pointer;user-select:none}
+body.mask .k *{color:transparent}
+body.mask .k.show{background:var(--hi-soft);color:inherit}
+body.mask .k.show *{color:inherit}
+
+/* 口訣 */
+.mn{border:2px solid var(--hi);border-radius:4px;background:var(--surface);overflow:hidden}
+.mn .h{background:var(--hi-soft);color:var(--hi-ink);font-weight:800;font-size:.82rem;padding:4px 12px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.mn .m{font-family:var(--hand);font-weight:800;font-size:1.3rem;color:var(--red);padding:8px 12px 0}
+.mn .a{padding:4px 12px 10px;font-size:.92rem}
+
+/* 托盤 */
+.tray .photo img{max-height:none;width:100%}
+.tlist{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:1fr;gap:0}
+.tlist li{display:grid;grid-template-columns:2.2em 1fr;gap:6px;padding:7px 4px;border-bottom:1px dashed var(--line);align-items:start;min-width:0}
+.tlist .n{font-family:var(--mono);font-weight:800;color:var(--red);text-align:right}
+.tlist .b{min-width:0}
+.tlist li.hl .nm{background:linear-gradient(transparent 55%,var(--hi) 55%,var(--hi) 95%,transparent 95%)}
+.tlist .x{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.jump{background:none;border:0;padding:0;color:var(--blue);font-size:.8rem;font-weight:700;text-decoration:underline;min-height:28px}
+
+/* 圖 */
+figure{margin:0}
+figcaption{font-size:.84rem;color:var(--muted);margin-top:6px}
+.diag svg{display:block;width:100%;height:auto;max-width:560px;margin:0 auto}
+.diag ol{margin:8px 0 0;padding-left:1.4em;font-size:.92rem}
+.tblwrap{overflow-x:auto;border:1.5px solid var(--line);border-radius:4px}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:.92rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--surface2);font-size:.8rem;color:var(--muted);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td .jump{font-size:.92rem;text-align:left}
+
+/* 測驗 */
+.quiz>summary{min-height:48px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:800;cursor:pointer}
+.q{border-top:1.5px dashed var(--line);padding:14px 0}
+.q .src{font-size:.75rem;color:var(--muted);font-family:var(--mono)}
+.q .stem{font-weight:700;margin:4px 0 8px}
+.q .photo{max-width:420px}
+.opts{display:grid;gap:8px;margin-top:10px}
+.opt{display:block;width:100%;text-align:left;min-height:48px;padding:8px 12px;background:var(--surface2);border:1.5px solid var(--line);border-radius:8px}
+.opt.ok{background:var(--green-soft);border-color:var(--green)}
+.opt.no{background:var(--red-soft);border-color:var(--red)}
+.opt.lock{cursor:default}
+.opt .ex{display:block;font-size:.85rem;color:var(--muted);margin-top:2px}
+.verdict{font-weight:800;margin-top:8px}
+.verdict.ok{color:var(--good)}.verdict.no{color:var(--bad)}
+
+/* 跑考練習 */
+.drillcard{text-align:center}
+.drillcard .photo img{max-height:300px}
+.timer{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;margin:10px 0}
+.timer i{display:block;height:100%;background:var(--red);width:100%}
+.flip{min-height:120px;border:1.5px dashed var(--line);border-radius:8px;padding:14px;background:var(--surface2);width:100%;text-align:center}
+.flip .big{font-size:1.25rem;font-weight:800}
+.rowc{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+.lab2{font-size:.8rem;font-weight:800;color:var(--muted);margin:10px 0 6px}
+
+.pill.good{background:var(--green-soft);border-color:var(--green);color:var(--good)}
+.pill.bad{background:var(--red-soft);border-color:var(--red);color:var(--bad)}
+.pill.out{background:var(--red);border-color:var(--red);color:var(--surface)}
+.pill.wb{border-color:var(--red);color:var(--red)}
+.clock{font-family:var(--mono);font-weight:800;font-size:.9rem;color:var(--muted);text-align:left;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.next{font-size:.85rem;color:var(--muted);margin-top:6px}
+.flip{display:block}
+.pbox{display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;align-items:center}
+.ring{position:relative;width:96px;height:96px}
+.ring svg{display:block;width:100%;height:100%}
+.ring .rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.ring .rc b{font-family:var(--mono);font-size:1.5rem;color:var(--blue)}
+.ring .rc span{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.pinfo .lab{font-weight:900;font-size:1.08rem}
+.pinfo .sub{font-size:.84rem;color:var(--muted)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+.dot.b{background:var(--blue)}.dot.g{background:var(--green)}
+.wlist{display:flex;flex-direction:column}
+.tablebox{overflow-x:auto}
+.wtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.wtools h2{margin:0}
+.wtable{width:100%;min-width:0;border-collapse:collapse;font-size:.9rem}
+.wtable th{position:sticky;top:0;background:var(--surface2);font-size:.78rem;color:var(--muted);font-weight:700;text-align:left;padding:9px 8px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+.wtable td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.wtable tr.on td{background:var(--hi-soft)}
+.wtable td.ck{padding:4px 2px;width:44px}
+.wtable td.ck label,.wtable th.ck label{display:flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;cursor:pointer}
+.wtable input{width:20px;height:20px;accent-color:var(--hi-ink);cursor:pointer;margin:0}
+.wtable .u{white-space:nowrap}
+.wtable .nm b{display:block}
+.wtable .nm .jump{margin-top:4px}
+.wtable .cnt{font-family:var(--mono);font-weight:700;color:var(--bad);text-align:center;white-space:nowrap}
+.wtable .fix{text-align:center;font-weight:900;font-size:1.05rem}
+.wtable .due{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.wtable tr.grp td{background:var(--surface);font-family:var(--hand);font-weight:700;font-size:1rem;color:var(--red);padding-top:14px}
+.okm{color:var(--good)}.nom{color:var(--bad)}
+@media (max-width:360px){.wtable col.c0{width:34px}.wtable col.c1{width:36px}.wtable col.c5{width:50px}.wtable td.ck label,.wtable th.ck label{min-width:32px}}
+@media (max-width:560px){.wtable{font-size:.8rem;table-layout:fixed}.wtable th,.wtable td{padding:7px 4px}.wtable th{white-space:normal;font-size:.7rem}.wtable col.c0{width:44px}.wtable col.c1{width:46px}.wtable col.c3,.wtable col.c4{width:42px}.wtable col.c5{width:58px}.wtable .u .tag{padding:1px 5px;font-size:.68rem}.wtable .due{white-space:normal}}
+.wrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:10px 2px;border-bottom:1px dashed var(--line);text-align:left;cursor:pointer}
+.wrow:not(label){grid-template-columns:minmax(0,1fr);cursor:default}
+.wrow input{width:24px;height:24px;margin:2px 0 0;accent-color:var(--hi-ink)}
+.wrow .b{min-width:0}.wrow .b b{display:block}
+.wrow .x{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:4px}
+.pill.sm{min-height:36px;padding:0 12px;font-size:.82rem}
+.pill.wide{min-width:200px}
+.pill.rec{border-color:var(--hi-ink)}
+.pill .rt{font-size:.68rem;background:var(--hi);color:var(--on-hi);border-radius:999px;padding:0 6px;margin-left:6px}
+.starb.on{background:var(--hi-soft);border-color:var(--hi-ink);color:var(--hi-ink)}
+.ghost{background:none;border:0;color:var(--muted);font-weight:700;font-size:.88rem;min-height:44px;padding:0 10px;border-radius:999px}
+.ghost:hover{color:var(--hi-ink);background:var(--hi-soft)}
+.spread{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;justify-content:space-between}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two .pill{white-space:nowrap;padding:0 8px}
+.card>h3,.card .spread>h3{font-size:1.12rem;font-weight:900}
+.dp>.card{display:flex;flex-direction:column;gap:12px}
+.dp>.card>*{min-width:0}
+.step{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--red);color:var(--surface);font-family:var(--hand);font-size:.85rem;margin-right:8px;vertical-align:2px}
+.wb-entry{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wb-entry h3{font-size:1.12rem;font-weight:900}
+.wb-entry>b{font-family:var(--mono);font-size:1.6rem;color:var(--red)}
+details.info summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--blue);font-weight:800;font-size:.92rem}
+ol.howto{margin:4px 0 0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px;font-size:.9rem}
+.units{display:grid;gap:10px;grid-template-columns:1fr}
+.unit{position:relative;display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1.5px solid var(--line);border-radius:4px;background:var(--surface);box-shadow:2px 3px 0 var(--line);cursor:pointer;min-width:0}
+.unit.on{border-color:var(--hi-ink);background:var(--hi-soft)}
+.unit input{position:absolute;top:12px;right:12px;width:22px;height:22px;accent-color:var(--hi-ink)}
+.unit .date{align-self:flex-start;font-family:var(--hand);font-weight:800;font-size:.76rem;color:var(--red)}
+.unit b{padding-right:30px;line-height:1.4}
+.unit small{color:var(--muted);font-size:.76rem}
+.unit .count{font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+.unit .bar{margin-top:4px;background:var(--surface2)}
+.unit.on .bar{background:var(--surface)}
+.pagehead h2 .mk,.card h3 .mk{background:linear-gradient(transparent 62%,var(--hi) 62%,var(--hi) 92%,transparent 92%)}
+.verdict.ok,.verdict.no{font-family:var(--hand)}
+.flip{border-radius:4px}
+.drillcard .photo,.rq .photo{border-radius:4px}
+.xbox{border-radius:4px}
+.bd{color:var(--bad)}.bl{color:var(--blue)}
+.selbox{background:var(--hi-soft);border:1.5px dashed var(--hi-ink);border-radius:4px;padding:10px 14px;font-size:.92rem}
+.selbox b{font-family:var(--mono);font-size:1.1rem}
+.startcard{border:1.5px solid var(--line)}
+.actions{display:flex;flex-direction:column;gap:8px}
+.actions .pill{width:100%}
+.actions .pill[aria-disabled="true"]{opacity:.45}
+.confirm{background:var(--red-soft);border:1.5px solid var(--red);border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:10px;font-size:.9rem}
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 58px);z-index:5;background:var(--paper);padding-block:6px;display:flex;flex-direction:column;gap:4px;margin-bottom:-10px}
+.dots{display:flex;gap:2px}
+.dots button{flex:1;min-width:0;height:26px;padding:9px 0;margin:0;border:0;background:none}
+.dots button::before{content:"";display:block;height:8px;border-radius:4px;background:var(--line)}
+.dots button.ok::before{background:var(--good)}.dots button.no::before{background:var(--bad)}.dots button.cur::before{background:var(--hi)}
+.dots button.at::before{box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--ink)}
+.drillcard{text-align:left}
+.drillcard .clock{margin:0}
+.qhead{display:flex;gap:12px;align-items:center}
+.qno{font-family:var(--hand);font-weight:800;font-size:2rem;line-height:1;color:var(--red)}
+.flip .ans{font-size:.92rem;margin-top:6px;text-align:left}
+.vrow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.vrow .verdict{margin:0;font-size:1.3rem;font-family:var(--hand)}
+.sched{font-size:.9rem;color:var(--muted);justify-content:space-between}
+.sched b{color:var(--ink)}
+.srcl{font-size:.76rem;color:var(--muted)}
+.nextbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.xbox{border-style:dashed;border-color:var(--red);max-height:260px}
+.scorecard{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
+.ring.big{width:132px;height:132px}.ring.big .rc b{font-size:1.8rem}
+.ub{display:flex;flex-direction:column;gap:10px;min-width:0}
+.ub .r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;font-size:.88rem}
+.ub .r .bar{grid-column:1/-1;margin:0}.ub .r .bar i{background:var(--good)}
+.rq{border-left:6px solid var(--line)}.rq.ok{border-left-color:var(--good)}.rq.no{border-left-color:var(--bad)}
+.photo.sm{max-width:320px}.photo.sm img{max-height:150px}
+.toast.copied{background:var(--good);color:var(--surface)}
+@media (max-width:480px){.scorecard{grid-template-columns:1fr;justify-items:center}.ub{width:100%}}
+@media (min-width:640px){.units{grid-template-columns:1fr 1fr}}
+@media (min-width:980px){.rail{top:calc(env(safe-area-inset-top,0px) + 58px)}}
+/* 搜尋 */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--paper);overflow:auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet-in{max-width:720px;margin:0 auto;padding-block:14px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.srow{display:flex;gap:8px}
+.srow input{flex:1;min-width:0;font:inherit;min-height:48px;padding:0 14px;border:1.5px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink)}
+.hit{display:block;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:4px;padding:10px 12px;margin-top:8px;min-height:48px}
+.hit small{display:block;color:var(--muted)}
+
+/* 放大 */
+.lb{position:fixed;inset:0;z-index:30;background:rgba(20,18,14,.94);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.lb-bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px))}
+.lb-bar button{min-width:48px;min-height:44px;border-radius:999px;border:1.5px solid #6b6455;background:#2b271e;color:#efe7d5;font-weight:800;padding:0 14px}
+.lb-view{flex:1;overflow:auto;display:flex}
+.lb-view img{margin:auto;max-width:none;height:auto;background:#fff;flex:none}
+.lb-cap{color:#efe7d5;text-align:center;font-size:.85rem;padding:6px 12px}
+.toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:999px;font-size:.88rem;font-weight:700;max-width:90vw}
+
+@media (min-width:640px){
+  .inst{grid-template-columns:240px 1fr;align-items:start}
+  .chlist{grid-template-columns:1fr 1fr}
+  .tlist.two{grid-template-columns:1fr 1fr;column-gap:18px}
+}
+@media (min-width:980px){
+  .tabs{display:none}
+  .shell{display:grid;grid-template-columns:250px minmax(0,1fr)}
+  .side{display:block;position:sticky;top:calc(54px + env(safe-area-inset-top,0px));align-self:start;height:calc(100vh - 54px);overflow:auto;border-right:2px solid var(--line);background:var(--surface);padding:14px 10px}
+  .side button{display:block;width:100%;text-align:left;min-height:44px;padding:6px 12px;border:0;background:none;border-radius:8px;font-weight:700;font-size:.92rem}
+  .side button.on{background:var(--hi-soft);color:var(--hi-ink)}
+  .side .sec{font-size:.72rem;font-weight:800;color:var(--muted);letter-spacing:.08em;padding:12px 12px 4px}
+  .side .cd{font-family:var(--mono);font-size:.8rem;color:var(--red);padding:4px 12px 0;font-weight:800}
+  .wrap{padding-bottom:60px}
+  .toast{bottom:24px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.tlist .b,.wrow .b,.inst h3,.tray h3,.flip .big,td{overflow-wrap:anywhere}
+.hero h1 .ver{font-family:var(--mono);font-size:.5em;font-weight:700;color:var(--muted);margin-left:.5em;vertical-align:.25em;letter-spacing:0;white-space:nowrap}
+
+/* 必考星號與只看圖 */
+.inst.must{border-color:var(--hi-ink);box-shadow:2px 3px 0 var(--hi)}
+.st{color:var(--hi-ink)}
+body.imgonly .inst dl,body.imgonly .inst details,body.imgonly .inst .note,body.imgonly .inst .row,body.imgonly .inst .star,body.imgonly .plain,body.imgonly .mn,body.imgonly .diag,body.imgonly details.quiz,body.imgonly .tray figcaption{display:none}
+body.imgonly .inst{grid-template-columns:1fr;gap:8px}
+body.imgonly .inst .photo img{max-height:150px}
+body.imgonly .inst h3{font-size:1rem}
+/* 選擇題練習、必考、功能開關（模板通用） */
+.copts{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.copt{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:start;text-align:left;width:100%;padding:11px 12px;border-radius:12px;background:var(--surface2);border:1.5px solid var(--line);font-size:.95rem;line-height:1.55;min-height:44px}
+.copt .cl{font-family:var(--mono);font-weight:800;color:var(--muted);text-align:center}
+.copt.ok{background:var(--green-soft);border-color:var(--green)}
+.copt.no{background:var(--red-soft);border-color:var(--red)}
+.copt .cexp{display:block;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:.86rem;color:var(--ink)}
+body.nodrill .star,body.nodrill .starb{display:none}
+body.noatlas .jump[data-act="jump"]{display:none}
+</style>
+</head><body>
+<script id="site-data" type="application/json">__DATA__</script>
+<script id="app-code">
+(function(){
+"use strict";
+const SD=JSON.parse(document.getElementById("site-data").textContent);
+/* ---------- 離線版：按下按鈕時把網站內容與全部圖片打包成單一 HTML ---------- */
+const OFFLINE=(()=>{try{const e=document.getElementById("offline-data");return e?JSON.parse(e.textContent):null;}catch(e){return null;}})();
+function figSrc(n){return (OFFLINE&&OFFLINE.img&&OFFLINE.img[n])||("fig/"+n+".jpg");}
+function blobToData(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(b);});}
+function offlineDate(){if(!OFFLINE||!OFFLINE.at)return "";const d=new Date(OFFLINE.at);const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}
+function offlineNote(){
+  if(OFFLINE)return `這是 <b>${offlineDate()}</b> 下載的離線版，不需要網路。進度只存在這台裝置，不會同步到帳號，也不會和線上版合併；網站之後更新的內容不會出現在這裡，要回線上版重新下載。${(OFFLINE.miss||[]).length?`下載當時有 ${OFFLINE.miss.length} 張圖沒抓到，會顯示成空白。`:""}`;
+  const n=new Set(offlineNames().filter(Boolean)).size;
+  return `把整個網站${n?`（含 ${n} 張圖）`:""}打包成<b>一個 HTML 檔</b>，圖片多時要等一兩分鐘，按鈕會顯示進度，全部打包完才會跳出下載；網路不穩或伺服器忙時會自動等一下再重試。下載後沒有網路也能用：用瀏覽器打開這個檔案即可（手機請用 Safari 或 Chrome 開，不要用檔案預覽）。離線版的進度只存在那台裝置，不會同步到帳號；網站之後更新要重新下載。`;}
+const OFF_IMG={};/* 已抓到的圖留在記憶體，再按一次只補抓缺的 */
+const offSleep=ms=>new Promise(r=>setTimeout(r,ms));
+/* 抓一張圖：失敗（伺服器嫌太密集、網路不穩）就等一下再試，最多 6 次；等待秒數依 Retry-After 或 1→2→4→8→16 秒 */
+async function offFetch(n,onWait){
+  let delay=1000;
+  for(let k=0;k<6;k++){
+    try{const r=await fetch("fig/"+encodeURIComponent(n)+".jpg",k?{cache:"reload"}:{});/* 重試時略過快取，免得拿到快取住的失敗回應 */
+      if(r.ok)return await blobToData(await r.blob());
+      if(r.status===404)return null;
+      const ra=parseFloat(r.headers.get("Retry-After"));if(ra>0)delay=Math.min(ra*1000,30000);
+    }catch(e){}
+    if(k<5){if(onWait)onWait(Math.ceil(delay/1000));await offSleep(delay);delay=Math.min(delay*2,16000);}
+  }
+  return null;}
+async function offlineHTML(prog){
+  const names=[...new Set(offlineNames().filter(Boolean))],img={};let miss=[];
+  const N=names.length;let done=0,gap=0;
+  const todo=names.filter(n=>!OFF_IMG[n]);done=N-todo.length;
+  for(let round=0;round<3;round++){
+    const list=round?miss:todo;miss=[];
+    if(round&&list.length){for(let s=8*round;s>0;s--){if(prog)prog(done,N,`還有 ${list.length} 張沒抓到，${s} 秒後再試`);await offSleep(1000);}}
+    for(const n of list){
+      let waited=false;
+      const d=await offFetch(n,s=>{waited=true;if(prog)prog(done,N,`伺服器忙，${s} 秒後重試`);});
+      if(d){OFF_IMG[n]=d;done++;}else miss.push(n);
+      if(waited)gap=Math.max(gap,200);/* 被擋過就放慢一點 */
+      if(prog)prog(done,N);
+      if(gap)await offSleep(gap);}
+    if(!miss.length)break;}
+  names.forEach(n=>{if(OFF_IMG[n])img[n]=OFF_IMG[n];});
+  const E="</"+"script>";
+  const off='<script id="offline-data" type="application/json">'+JSON.stringify({at:new Date().toISOString(),img,miss}).replace(/</g,"\\u003c")+E+"\n";
+  const data=document.getElementById("site-data").textContent;
+  let h=templateHTML();
+  h=h.replace("<title>__TITLE__</title>",()=>"<title>"+esc(document.title)+"（離線版）</title>");
+  h=h.replace("__DATA__",()=>data);
+  h=h.replace('<script id="app-code">',()=>off+'<script id="app-code">');
+  return {html:h,miss};}
+async function saveOffline(btnId,label){
+  if(OFFLINE)return;
+  const set=s=>{const b=document.getElementById(btnId);if(b)b.textContent=s;};
+  const reset=ms=>setTimeout(()=>set(label),ms||2400);
+  const b0=document.getElementById(btnId);if(b0&&b0.dataset.busy)return;if(b0)b0.dataset.busy="1";
+  try{
+    set("打包中…");
+    const {html,miss}=await offlineHTML((i,n,msg)=>set(msg?`${msg}（${i}／${n}）`:`打包圖片 ${i}／${n}`));
+    const fn=String(document.title||"網站").replace(/[\\/:*?"<>|]/g,"_")+"_離線版.html";
+    const okMsg=miss.length?`已下載，但有 ${miss.length} 張圖沒抓到，稍後再按一次會只補抓缺的`:"已下載 ✓";
+    let dl=null;try{dl=(window.claude&&window.claude.use)?await window.claude.use("downloads"):null;}catch(e){dl=null;}
+    if(dl){try{await dl.save({filename:fn,data:html});set(okMsg);}catch(e){set(e&&e.code==="declined"?"已取消":"無法下載，請稍後再試");}reset(miss.length?9000:0);return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download=fn;document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);set(okMsg);reset(miss.length?9000:0);
+  }catch(e){set("打包失敗，請稍後再試");reset();}
+  finally{const b=document.getElementById(btnId);if(b)delete b.dataset.busy;}}
+function offlineNames(){const s=new Set(Object.keys(SD.dims||{}));const add=o=>{if(o&&o.img)s.add(o.img);if(o&&o.orig)s.add(o.orig);};
+  Object.values(SD.items||{}).forEach(add);Object.values(SD.groups||{}).forEach(add);Object.values(SD.quiz||{}).forEach(a=>(a||[]).forEach(add));return [...s];}
+const I=SD.items,T=SD.groups||{},CH=SD.chapters,MN=SD.mnemonics||[],CMP=SD.cmp||[],DOUBT=SD.doubt||[],QZ=SD.quiz||{},DIM=SD.dims||{},EXAM=SD.site.examDefault;
+const PROMPT=/*PROMPT*/""/*/PROMPT*/;
+const F=Object.assign({atlas:true,drill:true,modes:["flash"]},SD.features||{});
+const LBL=Object.assign({item:"器械",f:"功能",c:"特徵",group:"組合",groupsTitle:"",groupsEn:"",source:"講義",nameOrder:"en",question:"",searchHint:""},SD.labels||{});
+CH.forEach(c=>{c.items=c.items||[];c.trays=c.trays||[];});
+const GCH=CH.find(c=>c.trays.length&&!c.items.length)||null;
+const NM=it=>LBL.nameOrder==="zh"?`${esc(it.z)}(${esc(it.n)})`:`${esc(it.n)}(${esc(it.z)})`;
+const NMp=it=>LBL.nameOrder==="zh"?`${it.z}(${it.n})`:`${it.n}(${it.z})`;
+const fillN=t=>String(t).replace(/\{(\w+)\}/g,(m,k)=>{const v={items:Object.keys(I).length,groups:Object.keys(T).length,mn:MN.length,diag:Object.keys(DG).length,cmp:CMP.length,chapters:CH.length}[k];return v==null?m:v;});
+function choiceHTML(it,cur,done){const mc=it.mc||{o:[],a:0,e:[]};const AB="ABCDE";
+  if(!done)return `<div class="copts">${mc.o.map((o,k)=>`<button class="copt" data-act="dopt" data-v="${k}"><span class="cl">${AB[k]}</span><span>${esc(o)}</span></button>`).join("")}</div>`;
+  return `<div class="copts">${mc.o.map((o,k)=>`<div class="copt${k===mc.a?' ok':k===cur.pick?' no':''}"><span class="cl">${AB[k]}</span><span>${esc(o)}${k===mc.a?' <span class="tag gn">正解</span>':k===cur.pick?' <span class="tag rd">你選的</span>':''}${mc.e&&mc.e[k]?`<span class="cexp">${fmt(mc.e[k])}</span>`:''}</span></div>`).join("")}</div>${mc.leak?'<div class="muted" style="font-size:.82rem;margin-top:6px">老師洩題原題，選項照原樣。</div>':''}`;}
+function templateHTML(){const g=id=>document.getElementById(id).textContent;const E="</"+"script>";
+  return '<!doctype html>\n<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>__TITLE__</title>\n<style id="theme">'+g("theme")+'</style>\n<style id="base">'+g("base")+'</style>\n</head><body>\n<script id="site-data" type="application/json">__DATA__'+E+'\n<script id="app-code">'+g("app-code")+E+'\n</body></html>\n';}
+const KEY=SD.site.storageKey;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=s=>esc(s).replace(/==(.+?)==/g,'<span class="k">$1</span>');
+const plainTxt=s=>String(s).replace(/==/g,"");
+const $=s=>document.querySelector(s);
+let S={done:{},star:{},quiz:{},known:{},rec:{},tavg:{n:0,s:0},exam:"",mask:false};
+try{const r=JSON.parse(localStorage.getItem(KEY)||"null");if(r&&typeof r==="object")S=Object.assign(S,r);}catch(e){}
+if(!S.rec||typeof S.rec!=="object")S.rec={};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}cloudSave();}
+let DB=null,UID=null,cT=null;
+function cloudSave(){if(!DB||!UID||!SD.site.dbDoc)return;clearTimeout(cT);cT=setTimeout(()=>{try{DB.doc("data/users/"+UID+"/"+SD.site.dbDoc).set({s:JSON.parse(JSON.stringify(S)),at:Date.now()});}catch(e){}},700);}
+async function cloudInit(){try{if(!SD.site.dbDoc||!window.claude||!window.claude.use)return;const u=await window.claude.use("user");if(!u)return;UID=await u.id();if(!UID)return;DB=await window.claude.use("db");if(!DB)return;
+  const snap=await DB.doc("data/users/"+UID+"/"+SD.site.dbDoc).get();if(!snap||!snap.exists)return;const r=(JSON.parse(JSON.stringify(snap.data()||{}))||{}).s||{};
+  ["done","star","quiz","known","rec"].forEach(k=>{S[k]=Object.assign({},r[k]||{},S[k]||{});});
+  if(r.tavg&&(!S.tavg||(r.tavg.n||0)>(S.tavg.n||0)))S.tavg=r.tavg;if(!S.exam&&r.exam)S.exam=r.exam;
+  try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}if(!(route==="drill"&&D.run))render();}catch(e){}}
+
+/* ---------- 路由 ---------- */
+const TABS=[["home","首頁"],["key","必考"]].concat(F.drill?[["drill","跑考"]]:[],GCH?[["trays",LBL.group]]:[],CMP.length?[["cmp","對照"]]:[],MN.length?[["mn","口訣"]]:[]);
+let imgOnly=false;
+let route="home", chFilter="all", keyFilter="all", mnFilter="all", pendingScroll=null;
+function parseHash(){const h=(location.hash||"").replace(/^#/,"");
+  if((F.drill&&(h==="wrongbook"||h==="starbook"))||TABS.some(t=>t[0]===h)||((F.atlas||(GCH&&h===GCH.id))&&CH.some(c=>c.id===h)))return h;return "home";}
+function go(r,scrollTo){pendingScroll=scrollTo||null;if(route===r&&("#"+r)===location.hash){render();return;}
+  route=r;try{location.hash=r;}catch(e){}render();}
+window.addEventListener("hashchange",()=>{const r=parseHash();if(r!==route){route=r;render();}});
+
+/* ---------- 日期 ---------- */
+function examDate(){return S.exam||EXAM;}
+function twToday(){const n=new Date(Date.now()+8*3600e3);return Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate())/864e5;}
+function daysLeft(){const [y,m,d]=examDate().split("-").map(Number);return Math.round(Date.UTC(y,m-1,d)/864e5)-twToday();}
+function cdText(){const n=daysLeft();return n>0?String(n):n===0?"今天":"已結束";}
+function cdUnit(){return daysLeft()>0?"天":"";}
+
+/* ---------- 小元件 ---------- */
+function img(name,eager){const d=DIM[name]||[400,300];
+  return `<img src="${figSrc(name)}" width="${d[0]}" height="${d[1]}" loading="${eager?"eager":"lazy"}" alt="">`;}
+function nameK(n,z){return LBL.nameOrder==="zh"?`<span class="k">${esc(z)}<span class="zh">(${esc(n)})</span></span>`:`<span class="k">${esc(n)}<span class="zh">(${esc(z)})</span></span>`;}
+function chOf(id){return CH.find(c=>c.items.includes(id));}
+function isHL(id){return !!(I[id]&&I[id].must)||Object.values(T).some(t=>t.list.some(r=>r[5]===id&&r[3]));}
+function instCard(id){const it=I[id];if(!it)return "";
+  const hl=isHL(id);
+  return `<article class="card inst${hl?' must':''}" id="i-${id}">
+    <button class="photo" data-act="zoom" data-img="${it.orig||it.img}" data-cap="${NM(it)}" aria-label="放大圖片">${img(it.orig||it.img)}</button>
+    <div>
+      <h3>${hl?'<span class="st" title="講義有標記">★</span> ':''}${nameK(it.n,it.z)}</h3>
+      <div class="row">${it.must?`<span class="tag hl">必考${it.must===true?"":"・"+esc(it.must)}</span>`:''}${hl&&!it.must?'<span class="tag hl">講義清單有螢光筆</span>':''}${it.hw?'<span class="tag hw">有手寫註記</span>':''}<span class="tag pg">p.${it.p}${it.pp?`（印 ${it.pp}）`:""}</span></div>
+      <dl><dt>${LBL.f}</dt><dd><ul>${it.f.map(x=>`<li>${fmt(x)}</li>`).join("")}</ul></dd>
+      <dt>${LBL.c}</dt><dd><ul>${it.c.map(x=>`<li>${fmt(x)}</li>`).join("")}</ul></dd></dl>
+      ${it.hw?`<div class="note b"><b>講義手寫：</b>${esc(it.hw)}</div>`:''}
+      ${it.warn?`<div class="note"><b>留意：</b>${esc(it.warn)}</div>`:''}
+      ${it.ef||it.ec?`<details><summary>看講義英文原文</summary>${it.ef?`<p><b>Function:</b> ${esc(it.ef)}</p>`:""}${it.ec?`<p><b>Characteristics:</b> ${esc(it.ec)}</p>`:""}</details>`:""}
+      <button class="star${S.star[id]?' on':''}" data-act="star" data-id="${id}">${S.star[id]?'★ 已收藏':'☆ 收藏'}</button>
+    </div></article>`;}
+function mnCard(m){return `<div class="mn" id="${m.id}"><div class="h"><span>口訣｜${fmt(m.topic).replace(/<span class="k">|<\/span>/g,"")}</span><span>自編</span></div>
+  <div class="m">${esc(m.mn)}</div><div class="a">${fmt(m.ans)}</div></div>`;}
+function trayCard(id){const t=T[id];const two=t.list.length>12;
+  return `<article class="card tray" id="${id}">
+   <h3>${nameK(t.n,t.z)}</h3>
+   <div class="row" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px"><span class="tag pg">照片 p.${t.p}${t.pp?`（印 ${t.pp}）`:""}</span>${t.lp?`<span class="tag pg">清單 p.${t.lp}${t.lpp?`（印 ${t.lpp}）`:""}</span>`:''}</div>
+   <button class="photo" data-act="zoom" data-img="${t.img}" data-cap="${NM(t)}" aria-label="放大${LBL.group}照片">${img(t.img)}</button>
+   <figcaption>講義原圖。紅色號碼對應下方清單，點圖可放大。</figcaption>
+   ${t.note?`<div class="note"><b>留意：</b>${esc(t.note)}</div>`:''}
+   <ol class="tlist${two?' two':''}">${t.list.map(r=>`<li class="${r[3]?'hl':''}"><span class="n">${r[0]}</span><span class="b"><span class="k"><span class="nm">${esc(r[1])}</span><span class="zh">(${esc(r[2])})</span></span>
+     <span class="x">${r[3]?'<span class="tag hl">螢光筆</span>':''}${r[4]?`<span class="tag hw">手寫：${esc(r[4])}</span>`:''}${r[6]?`<span class="tag rd">通用拼法 ${esc(r[6])}</span>`:''}${r[5]&&I[r[5]]?`<button class="jump" data-act="jump" data-id="${r[5]}">看${LBL.item}卡</button>`:''}</span></span></li>`).join("")}</ol>
+  </article>`;}
+
+/* ---------- 自繪示意圖（內容在 data.json 的 diagrams） ---------- */
+const DG={},DGAFTER={};Object.entries(SD.diagrams||{}).forEach(([k,v])=>{DG[k]=v.html;if(v.after)DGAFTER[v.after]=k;});
+
+/* ---------- 各頁 ---------- */
+function chProgress(c){const tot=c.items.length||c.trays.length;const kn=c.items.filter(i=>S.known[i]).length;return {tot,kn};}
+function doneCount(){return CH.filter(c=>S.done[c.id]).length;}
+function home(){
+  const custom=!!S.exam&&S.exam!==EXAM;
+  return `<div class="stack">
+  <section class="card tape hero">
+    <div class="eyebrow"><span>${esc((SD.site.band||[])[0]||"")}</span><span>${esc((SD.site.band||[])[1]||"")}</span></div>
+    <h1><span class="mk">${esc(SD.site.h1)}</span><span class="ver">${esc(SD.site.version)}</span></h1>
+    ${SD.site.heroLine?`<p>${fillN(SD.site.heroLine)}</p>`:""}
+    <div class="folds">
+      <details><summary>${OFFLINE?"離線版（目前使用中）":"下載離線版"}</summary><div class="body">${offlineNote()}${OFFLINE?"":`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px"><button class="pill primary" data-act="dloff" id="dloff">下載離線版</button></div>`}</div></details>
+      <details><summary>網頁提示詞</summary><div class="body">通用版，任何要認圖的科目都能用：複製提示詞並下載網站模板，連同你的講義交給 Claude。下載沒反應時改按「複製模板」，貼到文字檔存成 template.html。
+        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px"><button class="pill primary" data-act="copy">複製提示詞</button><button class="pill" data-act="dltpl" id="dltpl">下載網站模板</button><button class="pill" data-act="copytpl" id="copytpl">複製模板</button></div><pre class="prompt" id="prompt">${esc(PROMPT)}</pre></div></details>
+      <details><summary>網頁說明</summary><div class="body"><ul>${(SD.info||[]).map(x=>`<li>${fillN(x)}</li>`).join("")}</ul></div></details>
+      <details><summary>怎麼用</summary><div class="body"><ul>${(SD.howto||[]).map(x=>`<li>${fillN(x)}</li>`).join("")}</ul></div></details>
+    </div>
+  </section>
+  <section class="duo">
+    <div class="card stat"><div class="lab">距離跑考${custom?"（自訂日期）":""}</div><div class="num"><span id="cdnum">${cdText()}</span><span style="font-size:1rem"> ${cdUnit()}</span></div>
+      <div class="sub mono">${esc(examDate().replace(/-/g,"/"))}</div>
+      <button class="linkbtn" data-act="editdate">修改日期</button>
+      <div class="daterow" id="daterow" hidden><input type="date" id="examdate" value="${esc(examDate())}" aria-label="跑考日期"><button class="pill" data-act="savedate">儲存</button><button class="pill" data-act="resetdate">恢復預設</button></div></div>
+    <div class="card stat"><div class="lab">複習進度</div><div class="num b">${doneCount()}<span style="font-size:1rem"> / ${CH.length} 章</span></div>
+      <div class="sub">單字卡記住 ${Object.keys(S.known).filter(k=>S.known[k]).length} / ${Object.keys(I).length}　收藏 ${Object.keys(S.star).filter(k=>S.star[k]).length}</div></div>
+  </section>
+  ${F.drill?practiceBox():""}
+  ${F.atlas?`<section class="chlist">${CH.map((c,i)=>{const p=chProgress(c);const n=c.items.length;
+    return `<button class="chcard" data-act="go" data-r="${c.id}"><span class="no">第 ${i+1} 章</span><span class="t">${esc(c.t)}</span><span class="en">${esc(c.en)}</span>
+     <span class="meta"><span class="tag pg">${esc(c.pg)}</span>${n?`<span class="tag gn">${n} 種${LBL.item}</span>`:`<span class="tag gn">${c.trays.length} 個${LBL.group}</span>`}${(QZ[c.id]||[]).length?`<span class="tag hw">測驗 ${QZ[c.id].length} 題</span>`:""}${S.done[c.id]?'<span class="tag hl">已完成</span>':''}</span>
+     <span class="bar"><i style="width:${S.done[c.id]?100:(n?Math.round(p.kn/n*60):0)}%"></i></span></button>`;}).join("")}</section>`:""}
+  </div>`;}
+
+function quizBlock(c){const qs=QZ[c.id]||[];if(!qs.length)return `<section class="card"><button class="pill ${S.done[c.id]?'on':'primary'}" data-act="done" data-c="${c.id}">${S.done[c.id]?'✓ 已標記完成（再按取消）':'標記完成'}</button></section>`;const ans=qs.map((_,i)=>S.quiz[c.id+"#"+i]);
+  const nA=ans.filter(a=>a!=null).length, nOK=qs.filter((q,i)=>ans[i]===q.a).length;
+  const all=nA===qs.length;
+  return `<section class="card"><details class="quiz" id="quiz-${c.id}" ${nA&&!all?'open':''}><summary>本章測驗 ${qs.length} 題<span class="tag hw">已答 ${nA}／答對 ${nOK}</span><span class="tag rd">自編</span></summary>
+   ${qs.map((q,i)=>{const a=ans[i];const lock=a!=null;
+     return `<div class="q"><div class="src">${esc(q.s)}</div><div class="stem">${i+1}. ${esc(q.q)}</div>
+      ${q.img?`<button class="photo" data-act="zoom" data-img="${q.img}" data-cap="測驗第 ${i+1} 題" aria-label="放大題目圖片">${img(q.img)}</button>`:''}
+      <div class="opts">${q.o.map((o,j)=>`<button class="opt${lock?' lock':''}${lock&&j===q.a?' ok':''}${lock&&j===a&&j!==q.a?' no':''}" data-act="ans" data-c="${c.id}" data-i="${i}" data-j="${j}">${"ABCD"[j]}. ${esc(o)}${lock?`<span class="ex">${esc(q.e[j])}</span>`:''}</button>`).join("")}</div>
+      ${lock?`<div class="verdict ${a===q.a?'ok':'no'}">${a===q.a?'答對了':'答錯了，正解是 '+"ABCD"[q.a]}</div>`:''}</div>`;}).join("")}
+   <div class="rowc" style="justify-content:flex-start"><button class="pill" data-act="requiz" data-c="${c.id}">重新作答</button></div></details>
+   <div style="margin-top:12px"><button class="pill ${all?(S.done[c.id]?'on':'primary'):'off'}" data-act="done" data-c="${c.id}" aria-disabled="${all?'false':'true'}">${S.done[c.id]?'✓ 已標記完成（再按取消）':all?'標記完成':`作答完才能標記完成（${nA}/${qs.length}）`}</button></div></section>`;}
+
+function chapter(c){const idx=CH.indexOf(c);
+  let items=c.items;
+  if(chFilter==="hl")items=items.filter(i=>isHL(i)||I[i].hw);
+  if(chFilter==="star")items=items.filter(i=>S.star[i]);
+  const mns=id=>MN.filter(m=>m.ch===c.id&&m.after===id).map(mnCard).join("");
+  const body=items.map(id=>instCard(id)+mns(id)+(DGAFTER[id]?DG[DGAFTER[id]]:"")).join("");
+  const trays=c.trays.map(id=>trayCard(id)+mns(id)).join("");
+  return `<div class="stack">
+   <header class="pagehead"><div class="eyebrow"><span>第 ${idx+1} 章</span><span>${esc(c.pg)}</span></div><h2>${esc(c.t)}</h2><div class="en">${esc(c.en)}</div></header>
+   <div class="plain"><b>白話說</b>　${esc(c.plain)}</div>
+   ${c.items.length?`<div class="chips" role="group" aria-label="篩選">${[["all","全部"],["hl","講義有標記"],["star","收藏"]].map(f=>`<button class="pill${chFilter===f[0]?' on':''}" data-act="chf" data-f="${f[0]}">${f[1]}</button>`).join("")}<button class="pill${imgOnly?' on':''}" data-act="imgonly" aria-pressed="${imgOnly}">${imgOnly?'只看圖：開':'只看圖'}</button></div>`:''}
+   ${body||(c.items.length?'<div class="card muted">這個篩選下沒有'+LBL.item+'。</div>':'')}
+   ${trays}
+   ${quizBlock(c)}
+   <div class="rowc" style="justify-content:space-between">${idx>0?`<button class="pill" data-act="go" data-r="${CH[idx-1].id}">← 上一章</button>`:'<span></span>'}${idx<CH.length-1?`<button class="pill" data-act="go" data-r="${CH[idx+1].id}">下一章 →</button>`:''}</div>
+  </div>`;}
+
+function keyPage(){
+  const map={};
+  Object.entries(T).forEach(([tid,t])=>t.list.forEach(r=>{if(!r[3]&&!r[4])return;const k=(r[6]||r[1]).toLowerCase();
+    (map[k]=map[k]||{n:r[6]||r[1],z:r[2],ref:r[5],hl:[],hw:[]});if(r[3])map[k].hl.push([t,r[0]]);if(r[4])map[k].hw.push([t,r[0],r[4]]);if(r[5]&&!map[k].ref)map[k].ref=r[5];}));
+  Object.entries(I).forEach(([id,it])=>{if(it.hw){const k=it.n.toLowerCase();(map[k]=map[k]||{n:it.n,z:it.z,ref:id,hl:[],hw:[]});map[k].card=it.hw;map[k].ref=id;}});
+  Object.entries(I).forEach(([id,it])=>{if(it.must){const k=it.n.toLowerCase();(map[k]=map[k]||{n:it.n,z:it.z,ref:id,hl:[],hw:[]});map[k].must=it.must===true?"":it.must;map[k].ref=id;}});
+  let rows=Object.values(map);
+  if(keyFilter==="must")rows=rows.filter(r=>r.must!=null);
+  if(keyFilter==="hl")rows=rows.filter(r=>r.hl.length);
+  if(keyFilter==="hw")rows=rows.filter(r=>r.hw.length||r.card);
+  rows.sort((a,b)=>b.hl.length-a.hl.length||a.n.localeCompare(b.n));
+  return `<div class="stack">
+   <header class="pagehead"><h2>講義上的標記</h2><div class="en">只收講義看得到的螢光筆與手寫字，附出處</div></header>
+   ${SD.keyNote?`<div class="note b">${SD.keyNote}</div>`:""}
+   <div class="chips">${[["all","全部"]].concat(Object.values(I).some(x=>x.must)?[["must","必考"]]:[],Object.values(T).length?[["hl","螢光筆"],["hw","手寫註記"]]:[]).map(f=>`<button class="pill${keyFilter===f[0]?' on':''}" data-act="keyf" data-f="${f[0]}">${f[1]}</button>`).join("")}</div>
+   ${rows.map(r=>`<div class="card"><h3 style="font-size:1.05rem">${nameK(r.n,r.z)}</h3>
+     <div class="chips" style="margin-top:8px">${r.hl.map(h=>`<span class="tag hl">螢光筆｜${esc(h[0].z)} ${h[1]} 號（p.${h[0].lp||h[0].p}）</span>`).join("")}${r.hw.map(h=>`<span class="tag hw">手寫「${esc(h[2])}」｜${esc(h[0].z)} ${h[1]} 號（p.${h[0].p}）</span>`).join("")}${r.must!=null?`<span class="tag hl">必考${r.must?"・"+esc(r.must):""}</span>`:''}${r.card?`<span class="tag hw">手寫｜${esc(r.card)}</span>`:''}</div>
+     ${r.ref&&I[r.ref]?`<button class="jump" data-act="jump" data-id="${r.ref}" style="min-height:44px">看${LBL.item}卡</button>`:'<div class="muted" style="font-size:.82rem;margin-top:6px">講義沒有這項的單獨'+LBL.item+'卡，只出現在'+LBL.group+'清單。</div>'}</div>`).join("")}
+   <section class="card" id="doubt"><h3>講義疑誤與前後不一致</h3><p class="muted" style="font-size:.88rem;margin:6px 0 10px">網站內容保留講義原文。標「推論」的是我自己的判斷，講義沒有更正，請向老師確認。</p>
+    <div class="tblwrap"><table><thead><tr><th>位置</th><th>講義原文</th><th>說明</th><th>依據</th></tr></thead><tbody>${DOUBT.map(d=>`<tr>${d.map(x=>`<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></section>
+  </div>`;}
+
+function traysPage(){const c=GCH;if(!c)return home();
+  return `<div class="stack"><header class="pagehead"><div class="eyebrow"><span>第 ${CH.indexOf(c)+1} 章</span><span>${esc(c.pg)}</span></div><h2>${esc(LBL.groupsTitle||LBL.group)}</h2>${LBL.groupsEn?`<div class="en">${esc(LBL.groupsEn)}</div>`:""}</header>
+   <div class="plain"><b>白話說</b>　${esc(c.plain)}</div>
+   <div class="chips">${c.trays.map(id=>`<button class="pill" data-act="scroll" data-id="${id}">${esc(T[id].z)}</button>`).join("")}</div>
+   ${c.trays.map(id=>trayCard(id)+MN.filter(m=>m.after===id).map(mnCard).join("")).join("")}
+   ${quizBlock(c)}</div>`;}
+
+function cmpPage(){return `<div class="stack"><header class="pagehead"><h2>易混淆對照</h2><div class="en">長得像、名字像的放在一起比</div></header>
+  ${CMP.map(x=>`<section class="card" id="${x.id}"><h3>${esc(x.t)}</h3><div class="tblwrap" style="margin-top:10px"><table><thead><tr>${x.head.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>
+   ${x.rows.map(r=>`<tr><td><button class="jump" data-act="jump" data-id="${r[0]}">${NM(I[r[0]])}</button></td>${r.slice(1).map(v=>`<td>${fmt(v)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></section>`).join("")}
+  ${Object.keys(DG).filter(k=>SD.diagrams[k].cmp).map(k=>DG[k]).join("")}</div>`;}
+
+function mnPage(){const list=MN.filter(m=>mnFilter==="all"||m.ch===mnFilter);const chs=[...new Set(MN.map(m=>m.ch))];
+  return `<div class="stack"><header class="pagehead"><h2>口訣總表</h2><div class="en">共 ${MN.length} 則，全部自編，不是講義或老師提供</div></header>
+  <div class="chips"><button class="pill${mnFilter==="all"?' on':''}" data-act="mnf" data-f="all">全部</button>${chs.map(id=>{const c=CH.find(x=>x.id===id);return `<button class="pill${mnFilter===id?' on':''}" data-act="mnf" data-f="${id}">${esc(c.t)}</button>`;}).join("")}</div>
+  ${list.map(mnCard).join("")}</div>`;}
+
+/* ---------- 記憶曲線 ---------- */
+const LADDER=[1,2,4,7,14,30], WD="日一二三四五六";
+function examDay(){const [y,m,d]=examDate().split("-").map(Number);return Math.round(Date.UTC(y,m-1,d)/864e5);}
+function nextIv(iv,slow){const f=LADDER.find(x=>x>iv)||30;return slow?Math.min(f,Math.max(iv+1,Math.ceil(iv*1.25))):f;}
+function capDue(iv){const T=twToday(),ed=examDay(),E=ed-T;
+  if(E>=2)return Math.min(T+Math.min(iv,Math.max(1,Math.floor(E/2))),ed-1);
+  if(E===1)return T+Math.min(iv,1);
+  return T+iv;}
+function effDue(id){const p=S.rec[RK(id)];if(!p)return null;const T=twToday(),ed=examDay();let due=p.due;
+  if(ed>T&&due>ed)due=Math.max(ed-1,T);return due;}
+function isDue(id){const d=effDue(id);return d!=null&&d<=twToday();}
+function dueLabel(d){const n=d-twToday();const x=new Date(d*864e5);
+  return (n<=0?"今天":n===1?"明天":n+" 天後")+`（${x.getUTCMonth()+1}/${x.getUTCDate()} ${WD[x.getUTCDay()]}）`;}
+function fmtMs(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+function record(id,ok,ms){const T=twToday();const p=Object.assign({c:0,w:0,iv:0},S.rec[RK(id)]||{});
+  const valid=ms>0&&ms<=120000;let slow=false;const a=Object.assign({n:0,s:0},S.tavg||{});
+  if(ok&&valid&&a.n>=5){slow=ms>a.s/a.n*1.8&&ms>12000;}
+  if(valid){a.n++;a.s+=ms;S.tavg=a;}
+  if(ok){p.c++;p.l=1;p.iv=nextIv(p.iv||0,slow);p.due=capDue(p.iv);p.sl=slow?1:0;if(D.mode!=="choice")S.known[id]=1;}
+  else{p.w++;p.l=0;p.iv=0;p.due=T+1;p.sl=0;if(D.mode!=="choice")delete S.known[id];}
+  p.g=0;p.t=Date.now();p.ms=Math.round(ms);S.rec[RK(id)]=p;save();return p;}
+const allIds=()=>Object.keys(I).filter(i=>D.mode!=="choice"||I[i].mc);
+const RK=id=>D.mode==="choice"?"C:"+id:id;
+const modeKeys=()=>Object.keys(S.rec).filter(k=>k.startsWith("C:")===(D.mode==="choice"));
+const wrongSet=()=>allIds().filter(i=>S.rec[RK(i)]&&S.rec[RK(i)].w>0);
+const nowWrong=()=>allIds().filter(i=>S.rec[RK(i)]&&S.rec[RK(i)].l===0);
+const dueSet=()=>allIds().filter(isDue);
+const starSet=()=>allIds().filter(i=>S.star[i]);
+const chNo=id=>CH.indexOf(chOf(id))+1;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function copyText(t){const ok=()=>toast("已複製",500,"copied"),no=()=>toast("已展開文字，請自行選取複製");
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok).catch(no);else no();}
+function outText(ids){return ids.map(id=>{const it=I[id],p=S.rec[RK(id)],c=chOf(id);
+  return `===\n【章節】第 ${chNo(id)} 章 ${c.t}\n【${LBL.item}】${NMp(it)}\n【${LBL.f}】${plainTxt(it.f.join("；"))}\n【${LBL.c}】${plainTxt(it.c.join("；"))}\n【紀錄】${p?`錯 ${p.w} 次，最近一次${p.l===1?"答對":"答錯"}`:"還沒練過"}\n===`;}).join("\n");}
+function xbox(t,id){return t?`<pre class="prompt xbox" id="${id}">${esc(t)}</pre>`:"";}
+function ringSVG(a,b,tot,inner,big){const R=34,C=2*Math.PI*R,arc=(v,col)=>`<circle cx="42" cy="42" r="${R}" fill="none" stroke="var(${col})" stroke-width="9" stroke-linecap="${v?'round':'butt'}" stroke-dasharray="${tot?C*v/tot:0} ${C}" transform="rotate(-90 42 42)"/>`;
+  return `<div class="ring${big?' big':''}"><svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="9"/>${arc(a,"--blue")}${b!=null?arc(b,"--green"):""}</svg><div class="rc">${inner}</div></div>`;}
+
+/* ---------- 跑考練習：設定 ---------- */
+const DCH=CH.filter(c=>c.items.length);
+let D={mode:F.modes[0]||"flash",units:new Set(DCH.map(c=>c.id)),count:20,order:"new",must:false,sec:0,run:null,rf:"all",confirm:false,undo:null};
+const HASMUST=Object.values(I).some(x=>x.must);
+function weak(id){const p=S.rec[RK(id)];if(!p)return 2;if(p.l===0)return 5;if(p.g)return 4;if(p.sl)return 3;if((p.c||0)<=1)return 1;return 0;}
+function unitIds(){return allIds().filter(i=>D.units.has(chOf(i).id));}
+function selIds(){const ids=unitIds();return D.must&&HASMUST?ids.filter(i=>I[i].must):ids;}
+function buildList(){let ids=shuffle(selIds());const o=D.order,rank=f=>ids.sort((a,b)=>f(a)-f(b));
+  if(o==="due")ids=ids.filter(isDue);
+  else if(o==="only")ids=ids.filter(i=>!S.rec[RK(i)]);
+  else if(o==="cram")rank(i=>-weak(i));
+  else if(o==="new")rank(i=>!S.rec[RK(i)]?0:S.rec[RK(i)].l===0?1:2);
+  else if(o==="wrong")rank(i=>S.rec[RK(i)]&&S.rec[RK(i)].l===0?0:!S.rec[RK(i)]?1:2);
+  return D.count==="all"?ids:ids.slice(0,D.count);}
+function startRun(ids,label){if(!ids.length){toast("這個範圍目前沒有"+LBL.item+"");return;}
+  D.run={q:ids.map(id=>({id,flip:false,ok:null,ms:0,g:false})),i:0,done:false,label:label||"",x:{}};D.rf="all";
+  route="drill";try{location.hash="drill";}catch(e){}render();window.scrollTo(0,0);}
+let tick=null,lastTick=0;
+function curQ(){const r=D.run;return r&&!r.done?r.q[r.i]:null;}
+function isOpen(cur){return !cur.flip;}
+function stopTimer(){if(tick){clearInterval(tick);tick=null;}}
+function startTimer(){stopTimer();lastTick=Date.now();
+  tick=setInterval(()=>{const cur=curQ();if(!cur||!isOpen(cur)||route!=="drill"){stopTimer();return;}
+    const now=Date.now(),dt=Math.min(now-lastTick,1000);lastTick=now;if(document.hidden)return;
+    cur.ms+=dt;const el=$("#elapsed");if(el)el.textContent="⏱ 作答中 "+fmtMs(cur.ms);
+    if(D.sec){const left=D.sec*1000-cur.ms,bar=$("#tbar"),lab=$("#tleft");
+      if(bar)bar.style.width=Math.max(0,left/(D.sec*10))+"%";if(lab)lab.textContent="剩 "+Math.max(0,Math.ceil(left/1000))+" 秒";
+      if(left<=0){stopTimer();cur.flip=true;cur.late=true;if(D.mode==="choice"&&cur.ok==null){cur.ok=false;cur.pick=-1;record(cur.id,false,cur.ms);}render();}}},100);}
+function bookEntry(){const nW=wrongSet().length,nS=starSet().length;
+  return `<section class="card tape" id="books">
+    <div class="wb-entry"><div><h3>錯題本</h3><small class="muted">列出答錯過的${LBL.item}，可勾選輸出或練習</small></div><b>${nW}</b></div>
+    <div class="two"><button class="pill" data-act="go" data-r="wrongbook">查看錯題本</button><button class="pill" data-act="go" data-r="starbook">⭐ 收藏本 ${nS}</button></div>
+    <details class="info"><summary>使用說明：輸出錯題</summary><ol class="howto">
+      <li><b>單題輸出</b>：看完答案並按下答對或答錯後，按「輸出這題」；總檢討每一題下方也有。</li>
+      <li><b>整輪輸出</b>：一輪結束後，在總檢討按「輸出這輪錯題」。</li>
+      <li><b>挑題輸出</b>：按「查看錯題本」，勾選後按「輸出勾選的錯題」。</li>
+      <li><b>收藏本輸出</b>：按「⭐ 收藏本」，勾選後按「輸出勾選的收藏」；按錯取消收藏可以按「↩ 復原」。</li></ol>
+      <p class="muted" style="margin:6px 0 0;font-size:.88rem">按下後文字會自動複製並跳出「已複製」，下方也會展開文字。每題包含章節、${LBL.item}名稱、${LBL.f}、${LBL.c}與作答紀錄，前後用一行 === 隔開，可以直接貼到筆記或問 AI。</p></details></section>`;}
+function drillSetup(){
+  const sel=selIds(),selNew=sel.filter(i=>!S.rec[RK(i)]).length,selDue=sel.filter(isDue).length,nS=starSet().length,nNW=nowWrong().length,nRec=modeKeys().length;
+  const E=examDay()-twToday(),near=E>=0&&E<=3;
+  const units=DCH.map(c=>{const on=D.units.has(c.id),tot=c.items.length,seen=c.items.filter(i=>S.rec[RK(i)]).length,wr=c.items.filter(i=>S.rec[RK(i)]&&S.rec[RK(i)].l===0).length;
+    return `<label class="unit${on?' on':''}"><input type="checkbox" id="du-${c.id}" data-act="dunit" data-id="${c.id}" ${on?'checked':''}>
+      <span class="date">第 ${CH.indexOf(c)+1} 章</span><b>${esc(c.t)}</b><small>${esc(c.en)}</small>
+      <span class="bar"><i style="width:${Math.round(seen/tot*100)}%"></i></span><span class="count">${seen}/${tot} 已練${wr?`・<span class="bd">${wr} 錯</span>`:''}</span></label>`;}).join("");
+  const counts=[10,20,30,"all"].map(c=>`<button class="pill${D.count===c?' on':''}" data-act="dcount" data-v="${c}">${c==="all"?"全部":c+" 題"}</button>`).join("");
+  const orders=[["due",`今日到期 ${selDue}`],["cram","考前衝刺"],["new","沒練過的優先"],["only","只做沒練過"],["wrong","錯題優先"],["rand","完全隨機"]].map(([k,t])=>`<button class="pill${D.order===k?' on':''}${k==="cram"&&near?' rec':''}" data-act="dorder" data-v="${k}">${t}${k==="cram"&&near?'<span class="rt">推薦</span>':''}</button>`).join("");
+  const HINT={due:"只出記憶曲線排到今天（含逾期）該複習的"+LBL.item+"。答錯隔天再出，答對間隔逐次拉長，但一定排在跑考前。",
+    cram:"不管排程，依不熟程度出題：最近答錯 → 用猜的 → 答得慢 → 沒練過 → 答對次數少。",
+    new:"先出沒練過的，再出錯題，最後才是答對過的。",only:"只出還沒練過的"+LBL.item+"。",wrong:"先出最近答錯的，再出沒練過的，最後才是答對過的。",rand:"選定範圍內完全隨機出題。"};
+  const n=buildCount();
+  return `<div class="stack dp"><header class="pagehead"><h2><span class="mk">跑考練習</span></h2><div class="en">${D.mode==="choice"?"看圖選出正確答案，選完立刻看每個選項的說明":"看講義原圖，先自己說出名稱與"+LBL.f+"，再看答案、自評對錯"}</div></header>
+   ${F.modes.length>1?`<div class="chips" role="group" aria-label="作答模式">${F.modes.map(m=>`<button class="pill${D.mode===m?' on':''}" data-act="dmode" data-v="${m}">${m==="choice"?"選擇題":"單字卡"}</button>`).join("")}</div>`:""}
+   ${bookEntry()}
+   <section class="card"><div class="spread"><h3><span class="step">1</span>選擇範圍</h3><div class="row"><button class="ghost" data-act="dall" data-v="1">全選</button><button class="ghost" data-act="dall" data-v="0">全不選</button></div></div>
+     <div class="units">${units}</div></section>
+   <section class="card"><h3><span class="step">2</span>題數與順序</h3>
+     <div class="chips">${counts}</div>${HASMUST?`<div class="chips" role="group" aria-label="必考篩選"><button class="pill${!D.must?' on':''}" data-act="dmust" data-v="0">全部 ${unitIds().length}</button><button class="pill${D.must?' on':''}" data-act="dmust" data-v="1">★ 只出必考 ${unitIds().filter(i=>I[i].must).length}</button></div>`:""}<div class="chips">${orders}</div><small class="muted">${D.must&&HASMUST?"只從標了必考的"+LBL.item+"裡出題，再照下面的順序排。":""}${HINT[D.order]}</small>
+     <div class="lab2" style="margin:4px 0 0">每站限時</div><div class="chips">${[[0,"不限時"],[15,"15 秒"],[30,"30 秒"],[60,"60 秒"]].map(s=>`<button class="pill${D.sec===s[0]?' on':''}" data-act="dsec" data-v="${s[0]}">${s[1]}</button>`).join("")}</div>
+     <small class="muted">${D.mode==="choice"?"限時到了直接判為答錯，並顯示正解。":"限時到了會自動翻出答案，再由你自評對錯。"}</small></section>
+   <section class="card tape startcard">
+     <div class="selbox">已選 <b>${sel.length}</b> 個${LBL.item}，其中 <b class="bl">${selNew}</b> 個沒練過${n!==sel.length?`；這一輪會出 <b>${n}</b> 題`:''}</div>
+     <div class="actions"><button class="pill primary" id="dstart" data-act="dstart" aria-disabled="${n?'false':'true'}">開始練習</button>
+       ${nS?`<button class="pill" data-act="dfav">★ 只練收藏（${nS}）</button>`:''}${nNW?`<button class="pill" data-act="dwrong">只練錯題（${nNW}）</button>`:''}</div>
+     ${n?'':`<small class="muted">${sel.length?'這個順序目前沒有可出的題目，換一個順序試試。':'請至少選一個章節。'}</small>`}
+     ${D.undo?`<div class="note g" id="undobar">剛才清除了 ${D.undo.n} 個${LBL.item}的作答紀錄　<button class="jump" data-act="wundo" style="min-height:44px">↩ 復原紀錄</button></div>`:''}
+     ${D.confirm?`<div class="confirm"><span>確定要清除全部 ${nRec} 個${LBL.item}的作答紀錄嗎？錯題本會歸零；收藏會保留。</span><div class="row"><button class="pill bad" data-act="wclear2">確定清除</button><button class="pill" data-act="wcancel">取消</button></div></div>`
+       :`<div class="spread"><span class="muted" style="font-size:.85rem">想從頭再練一次？</span><button class="ghost" data-act="wclear">清除作答紀錄</button></div>`}
+   </section></div>`;}
+function buildCount(){const sel=selIds();let m=sel.length;if(D.order==="due")m=sel.filter(isDue).length;else if(D.order==="only")m=sel.filter(i=>!S.rec[RK(i)]).length;
+  return D.count==="all"?m:Math.min(m,D.count);}
+
+/* ---------- 跑考練習：作答與總檢討 ---------- */
+function answerHTML(it){return `<div class="flip"><div class="big">${NM(it)}</div><div class="ans"><b>${LBL.f}：</b>${esc(plainTxt(it.f.join("；")))}<br><b>${LBL.c}：</b>${esc(plainTxt(it.c.join("；")))}</div></div>`;}
+function drillQuiz(){const r=D.run,cur=r.q[r.i],it=I[cur.id],n=r.q.length,last=r.i===n-1,judged=cur.ok!=null;
+  const dots=r.q.map((x,i)=>`<button class="${x.ok===true?'ok':x.ok===false?'no':i===r.i?'cur':''}${i===r.i?' at':''}" data-act="dgo" data-i="${i}" aria-label="跳到第 ${i+1} 題${x.ok===true?'（答對）':x.ok===false?'（答錯）':''}"></button>`).join("");
+  let body;
+  if(D.mode==="choice"&&!judged)body=choiceHTML(it,cur,false);
+  else if(!cur.flip)body=`<div class="flip"><div class="muted">先在心裡說出名稱和${LBL.f}，再按「看答案」</div></div><div class="rowc"><button class="pill primary wide" data-act="dflip">看答案</button></div>`;
+  else if(!judged)body=answerHTML(it)+`<div class="lab2" style="text-align:center">${cur.late?'時間到。':''}你剛剛答對了嗎？</div><div class="two"><button class="pill bad" data-act="dcard" data-v="no">✗ 答錯</button><button class="pill good" data-act="dcard" data-v="ok">✓ 答對</button></div>`;
+  else{const p=S.rec[RK(cur.id)];
+    body=`<div class="vrow"><div class="verdict ${cur.ok?'ok':'no'}">${cur.ok?'答對了！':'答錯了'}</div><button class="pill primary" data-act="dnext">${last?'看結果':'下一題 →'}</button></div>
+     <div class="row sched" id="nextdue"><span>下次複習：<b>${dueLabel(effDue(cur.id))}</b>${cur.g?'（用猜的，當成答錯）':cur.ok?(p&&p.sl?'（這題答得比較久，間隔縮短）':''):'（已進錯題本）'}</span>${cur.ok?`<button class="pill sm${cur.g?' on':''}" data-act="dguess" aria-pressed="${!!cur.g}">🎲 用猜的</button>`:''}</div>
+     ${D.mode==="choice"?choiceHTML(it,cur,true):""}${answerHTML(it)}
+     <div class="row"><button class="pill out sm" data-act="dx" data-id="${cur.id}">輸出這題（可複製文字）</button><button class="jump" data-act="jump" data-id="${cur.id}">看${LBL.item}卡</button></div>${xbox(r.x[cur.id],"x-"+cur.id)}`;}
+  return `<div class="stack dp">
+   <div class="rail"><div class="spread"><span class="mono muted">${r.i+1} / ${n}・第 ${chNo(cur.id)} 章${r.label?'・'+esc(r.label):''}</span><button class="ghost" data-act="dquit">結束並檢討</button></div>
+     <div class="dots" role="navigation" aria-label="題目進度，點選可跳到該題">${dots}</div></div>
+   <section class="card tape drillcard">
+     <div class="spread"><span class="clock" id="elapsed">⏱ ${cur.flip?'作答時間':'作答中'} ${fmtMs(cur.ms)}</span><span class="row">${D.sec&&!cur.flip?`<span class="mono muted" id="tleft">剩 ${D.sec} 秒</span>`:''}<button class="pill sm starb${S.star[cur.id]?' on':''}" data-act="dstar" data-id="${cur.id}" aria-pressed="${!!S.star[cur.id]}">${S.star[cur.id]?'★ 已收藏':'☆ 收藏'}</button></span></div>
+     ${D.sec&&!cur.flip?'<div class="timer"><i id="tbar"></i></div>':''}
+     <div class="qhead"><span class="qno">${String(r.i+1).padStart(2,"0")}</span><b>${esc(D.mode==="choice"&&it.mc&&it.mc.q||LBL.question||"這是什麼？")}</b></div>
+     ${(()=>{const im=cur.flip&&it.orig?it.orig:it.img;return `<button class="photo" data-act="zoom" data-img="${im}" data-cap="跑考練習" aria-label="放大圖片">${img(im,1)}</button>${cur.flip&&it.orig?'<div class="muted" style="font-size:.82rem;text-align:center">作答前遮住了圖上的標註，這是原圖</div>':''}`;})()}
+     ${body}
+     <div class="srcl mono">出處：${esc(LBL.source)} p.${it.p}${it.pp?`（印 ${it.pp}）`:""}</div></section>
+   <div class="nextbar"><button class="pill${r.i===0?' off':''}" data-act="dprev" aria-disabled="${r.i===0}">← 上一題</button>${judged?`<button class="pill primary" data-act="dnext">${last?'看結果':'下一題 →'}</button>`:`<small class="muted">${D.mode==="choice"?'選一個答案':cur.flip?'選「答對」或「答錯」':'先想好再看答案'}</small>`}</div></div>`;}
+function drillReview(){const r=D.run,L=r.q.filter(x=>x.ok!=null),right=L.filter(x=>x.ok).length,pct=L.length?Math.round(right/L.length*100):0;
+  const tot=L.reduce((a,x)=>a+x.ms,0),wrong=L.filter(x=>!x.ok),shown=D.rf==="wrong"?wrong:L;
+  const byC={};L.forEach(x=>{const c=chOf(x.id).id;byC[c]=byC[c]||[0,0];byC[c][1]++;if(x.ok)byC[c][0]++;});
+  const ub=DCH.filter(c=>byC[c.id]).map(c=>`<div class="r"><span>第 ${CH.indexOf(c)+1} 章　${esc(c.t)}</span><span class="mono">${byC[c.id][0]}/${byC[c.id][1]}</span><span class="bar"><i style="width:${Math.round(byC[c.id][0]/byC[c.id][1]*100)}%"></i></span></div>`).join("");
+  const items=shown.map(x=>{const it=I[x.id];return `<section class="card rq ${x.ok?'ok':'no'}">
+     <div class="row"><span class="tag pg">第 ${chNo(x.id)} 章</span><span class="tag pg">⏱ ${fmtMs(x.ms)}</span>${x.g?'<span class="tag hl">用猜的</span>':''}<span class="tag hw">複習 ${dueLabel(effDue(x.id))}</span></div>
+     <span class="verdict ${x.ok?'ok':'no'}">${x.ok?'✓ 答對':'✗ 答錯'}</span>
+     <button class="photo sm" data-act="zoom" data-img="${it.orig||it.img}" data-cap="${NM(it)}" aria-label="放大圖片">${img(it.orig||it.img)}</button>
+     ${answerHTML(it)}
+     <div class="row"><button class="pill out sm" data-act="dx" data-id="${x.id}">輸出這題（可複製文字）</button><button class="jump" data-act="jump" data-id="${x.id}">看${LBL.item}卡</button></div>${xbox(r.x[x.id],"x-"+x.id)}</section>`;}).join("");
+  return `<div class="stack dp"><section class="card tape"><h3><span class="mk">這一輪的總檢討</span></h3>
+    <div class="scorecard">${ringSVG(right,null,L.length,`<b>${pct}%</b><span>答對 ${right}/${L.length}</span>`,1)}<div class="ub">${ub||'<span class="muted">這一輪還沒有作答。</span>'}</div></div>
+    <div class="mono muted" id="runtime" style="font-size:.88rem">⏱ 這輪總時間 ${fmtMs(tot)}${L.length?`　平均每題 ${Math.round(tot/L.length/100)/10} 秒`:''}</div></section>
+   <div class="spread"><div class="chips"><button class="pill${D.rf==="all"?' on':''}" data-act="drf" data-v="all">全部題目</button><button class="pill${D.rf==="wrong"?' on':''}" data-act="drf" data-v="wrong">只看錯題（${wrong.length}）</button></div>
+     <div class="chips">${wrong.length?`<button class="pill out" data-act="dxround">輸出這輪錯題（${wrong.length}）</button><button class="pill" data-act="dredo">重練這輪錯題</button>`:''}<button class="pill primary" data-act="dhome">回到跑考練習</button></div></div>
+   ${xbox(r.x.round,"x-round")}
+   ${items||`<p class="muted">${L.length?'這一輪沒有錯題。':'這一輪還沒有作答。'}</p>`}
+   <div class="nextbar"><span></span><button class="pill primary" data-act="dhome">回到跑考練習</button></div></div>`;}
+function drillPage(){return !D.run?drillSetup():D.run.done?drillReview():drillQuiz();}
+
+/* ---------- 錯題本與收藏本 ---------- */
+let W={sel:{},sort:"ch",out:""}, B={sel:{},sort:"ch",out:"",undo:[]};
+const byCh=(a,b)=>CH.indexOf(chOf(a))-CH.indexOf(chOf(b));
+function wrongIds(){const ids=wrongSet();
+  if(W.sort==="n")ids.sort((a,b)=>S.rec[RK(b)].w-S.rec[RK(a)].w||byCh(a,b));
+  else if(W.sort==="due")ids.sort((a,b)=>effDue(a)-effDue(b)||byCh(a,b));
+  else ids.sort(byCh);return ids;}
+function starIds(){const ids=starSet();if(B.sort==="t")ids.sort((a,b)=>S.star[b]-S.star[a]||byCh(a,b));else ids.sort(byCh);return ids;}
+function bookHead(pre,ids,sel,cols){const allOn=ids.length&&sel.length===ids.length;
+  return `<colgroup>${cols.map((_,k)=>`<col class="c${k}">`).join("")}</colgroup><thead><tr><th class="ck"><label><input type="checkbox" data-act="${pre}all" ${allOn?'checked':''} aria-label="全選"></label></th>${cols.slice(1).map(c=>`<th>${c}</th>`).join("")}</tr></thead>`;}
+function bookRows(pre,ids,selMap,grouped,cells){let last=null;const n=cells(ids[0]||"").length+3;
+  return ids.map(id=>{const it=I[id],c=chOf(id),on=!!selMap[id];let g="";
+    if(grouped&&c!==last){last=c;g=`<tr class="grp"><td colspan="${n}">第 ${chNo(id)} 章　${esc(c.t)}</td></tr>`;}
+    return g+`<tr class="${on?'on':''}"><td class="ck"><label><input type="checkbox" data-act="${pre}sel" data-id="${id}" ${on?'checked':''} aria-label="勾選這個${LBL.item}"></label></td>
+      <td class="u"><span class="tag pg">第 ${chNo(id)} 章</span></td>
+      <td class="nm"><b>${NM(it)}</b><button class="jump" data-act="jump" data-id="${id}">看${LBL.item}卡</button></td>${cells(id).join("")}</tr>`;}).join("");}
+function wrongPage(){const ids=wrongIds(),sel=ids.filter(i=>W.sel[i]),n=sel.length,fixed=ids.filter(i=>S.rec[RK(i)].l===1).length;
+  const cells=id=>{if(!id)return ["","",""];const p=S.rec[RK(id)];return [`<td class="cnt">${p.w}</td>`,`<td class="fix">${p.l===1?'<span class="okm" title="最近一次答對">✓</span>':'<span class="nom" title="最近一次答錯">✗</span>'}${p.g?'<div class="due">用猜的</div>':''}</td>`,`<td class="due">${dueLabel(effDue(id))}</td>`];};
+  return `<div class="stack dp">
+   <div class="wtools"><h2><span class="mk">錯題本</span> <span class="muted mono" style="font-size:.9rem">${ids.length} 個</span></h2>
+    <div class="row"><button class="pill ${n?'out':'off'}" data-act="wout" aria-disabled="${n?'false':'true'}">輸出勾選的錯題（${n}）</button><button class="pill ${n?'':'off'}" data-act="wgo" aria-disabled="${n?'false':'true'}">練習勾選的題目</button><button class="pill primary" data-act="go" data-r="home">回首頁</button></div></div>
+   <div class="chips"><button class="pill" data-act="go" data-r="drill">← 回跑考練習</button><button class="pill" data-act="go" data-r="starbook">⭐ 收藏本 ${starSet().length}</button><span class="muted" style="font-size:.85rem;align-self:center">今天到期 ${ids.filter(isDue).length} 個</span></div>
+   <div class="spread"><div class="chips"><span class="muted" style="font-size:.88rem;align-self:center">排列方式</span>${[["ch","照章節"],["n","照錯的次數（多→少）"],["due","照複習日"]].map(s=>`<button class="pill${W.sort===s[0]?' on':''}" data-act="wsort" data-v="${s[0]}">${s[1]}</button>`).join("")}</div>
+    <span class="muted" style="font-size:.85rem">已改正 ${fixed}／${ids.length} 個</span></div>
+   ${xbox(W.out,"wouttxt")}
+   <section class="card" style="padding:0;overflow:hidden">
+    ${ids.length?`<div class="tablebox"><table class="wtable">${bookHead("w",ids,sel,["","章節",LBL.item,"錯的次數","後來答對","下次複習"])}<tbody>${bookRows("w",ids,W.sel,W.sort==="ch",cells)}</tbody></table></div>`
+     :`<p class="muted" style="padding:20px;margin:0">目前沒有錯題。到「跑考練習」作答，答錯的${LBL.item}會自動收進這裡，隔天再出一次。</p>`}
+   </section>
+   <small class="muted">「錯的次數」是累計答錯幾次；「後來答對」看最近一次作答：最近一次答對打 ✓，還沒答對或又答錯打 ✗。答錯過的${LBL.item}會一直留在錯題本，清除作答紀錄後歸零。勾選後按「輸出勾選的錯題」會複製成文字。</small>
+   <section class="card"><h3 style="font-size:1rem">記憶曲線怎麼排</h3><ul style="margin:6px 0 0;padding-left:1.2em;font-size:.92rem">
+     <li>答錯：明天再出。</li><li>答對：間隔 1→2→4→7→14→30 天逐次拉長。</li>
+     <li>答對但比自己平均慢很多（約 1.8 倍且超過 12 秒）：間隔只小幅拉長。超過 2 分鐘或切到別的分頁的時間不算。</li>
+     <li>答對後按「🎲 用猜的」：當成答錯來排，明天再出。</li><li>複習日最晚排在跑考前一天，間隔最長約剩餘天數的一半。</li></ul></section></div>`;}
+function starPage(){const ids=starIds(),sel=ids.filter(i=>B.sel[i]),n=sel.length;const u=B.undo.length?B.undo[B.undo.length-1]:null;
+  const cells=id=>{if(!id)return ["",""];const p=S.rec[RK(id)];return [`<td class="cnt">${p&&p.w?p.w:0}</td>`,`<td class="fix">${!p?'<span class="muted" title="還沒練過">—</span>':p.l===1?'<span class="okm" title="最近一次答對">✓</span>':'<span class="nom" title="最近一次答錯">✗</span>'}</td>`];};
+  return `<div class="stack dp">
+   <div class="wtools"><h2>⭐ <span class="mk">收藏本</span> <span class="muted mono" style="font-size:.9rem">${ids.length} 個</span></h2>
+    <div class="row"><button class="pill ${n?'out':'off'}" data-act="bout" aria-disabled="${n?'false':'true'}">輸出勾選的收藏（${n}）</button><button class="pill ${n?'':'off'}" data-act="bgo" aria-disabled="${n?'false':'true'}">練習勾選的題目</button><button class="pill ${n?'':'off'}" data-act="bun" aria-disabled="${n?'false':'true'}">取消收藏勾選的題目</button><button class="pill primary" data-act="go" data-r="home">回首頁</button></div></div>
+   <div class="chips"><button class="pill" data-act="go" data-r="drill">← 回跑考練習</button><button class="pill" data-act="go" data-r="wrongbook">錯題本 ${wrongSet().length}</button></div>
+   ${u?`<div class="note g" id="starundo">剛才取消收藏了 ${Object.keys(u).length} 個${B.undo.length>1?`（還可以再往回復原 ${B.undo.length-1} 次）`:''}　<button class="jump" data-act="bundo" style="min-height:44px">↩ 復原</button></div>`:''}
+   <div class="chips"><span class="muted" style="font-size:.88rem;align-self:center">排列方式</span>${[["ch","照章節"],["t","照收藏時間（新→舊）"]].map(s=>`<button class="pill${B.sort===s[0]?' on':''}" data-act="bsort" data-v="${s[0]}">${s[1]}</button>`).join("")}</div>
+   ${xbox(B.out,"bouttxt")}
+   <section class="card" style="padding:0;overflow:hidden">
+    ${ids.length?`<div class="tablebox"><table class="wtable">${bookHead("b",ids,sel,["","章節",LBL.item,"錯的次數","最近作答"])}<tbody>${bookRows("b",ids,B.sel,B.sort==="ch",cells)}</tbody></table></div>`
+     :`<p class="muted" style="padding:20px;margin:0">還沒有收藏。在跑考練習作答時按右上的「☆ 收藏」，或在各章的${LBL.item}卡按「☆ 收藏」，答對的也可以收藏，收藏的${LBL.item}會出現在這裡。</p>`}
+   </section>
+   <small class="muted">「最近作答」：✓ 最近一次答對、✗ 最近一次答錯、— 還沒練過。取消收藏後可以按「↩ 復原」，連續取消多次可以一次一次往回復原（重新整理網頁前有效）。</small></div>`;}
+function practiceBox(){const tot=allIds().length,done=allIds().filter(i=>S.rec[RK(i)]).length,good=allIds().filter(i=>S.rec[RK(i)]&&S.rec[RK(i)].l===1&&!S.rec[RK(i)].g).length;
+  const nDue=dueSet().length,nW=wrongSet().length,nS=starSet().length;
+  return `<section class="card pbox" id="pbox">${ringSVG(done,good,tot,`<b>${done}</b><span>/ ${tot}</span>`)}
+   <div class="pinfo"><div class="lab">跑考練習</div>
+    <div class="sub"><span class="dot b"></span>練過 ${done}　<span class="dot g"></span>最近答對 ${good}　今天到期 ${nDue}</div>
+    <div class="chips" style="margin-top:10px"><button class="pill primary" data-act="go" data-r="drill">開始練習</button>${nDue?`<button class="pill" data-act="dquick">複習到期 ${nDue}</button>`:''}<button class="pill${nW?' wb':''}" data-act="go" data-r="wrongbook">錯題本 ${nW}</button><button class="pill" data-act="go" data-r="starbook">⭐ 收藏本 ${nS}</button></div></div></section>`;}
+
+/* ---------- 外框 ---------- */
+const root=document.createElement("div");root.id="app";document.body.appendChild(root);
+function shell(){
+  const c=CH.find(x=>x.id===route);
+  const title=c?c.t:route==="wrongbook"?"錯題本":route==="starbook"?"收藏本":(TABS.find(t=>t[0]===route)||TABS[0])[1];
+  root.innerHTML=`<header class="top"><div class="top-in">
+    ${route!=="home"?'<button class="ibtn" data-act="go" data-r="home" aria-label="回首頁">← 首頁</button>':''}
+    <div class="top-title">${route==="home"?esc(SD.site.topTitle||SD.site.h1):esc(title)}</div>
+    <button class="ibtn" data-act="search" aria-label="搜尋">搜尋</button>
+    <button class="ibtn${S.mask?' on':''}" data-act="mask" aria-pressed="${S.mask}">${S.mask?'遮重點：開':'遮重點'}</button></div></header>
+   <div class="shell"><nav class="side" aria-label="目錄">
+     <div class="cd">距離跑考 ${cdText()}${cdUnit()}</div>
+     <button data-act="go" data-r="home" class="${route==="home"?'on':''}">首頁</button>
+     ${F.atlas?`<div class="sec">章節</div>${CH.map((x,i)=>`<button data-act="go" data-r="${x.id}" class="${route===x.id||(GCH&&x.id===GCH.id&&route==="trays")?'on':''}">${i+1}. ${esc(x.t)}${S.done[x.id]?' ✓':''}</button>`).join("")}`:""}
+     <div class="sec">複習工具</div>${[["key","講義標記（必考）"],["drill","跑考練習"],["wrongbook","錯題本"],["starbook","收藏本"],["mn","口訣總表"],["cmp","易混淆對照"]].filter(t=>(F.drill||!["drill","wrongbook","starbook"].includes(t[0]))&&(t[0]!=="mn"||MN.length)&&(t[0]!=="cmp"||CMP.length)).map(t=>`<button data-act="go" data-r="${t[0]}" class="${route===t[0]?'on':''}">${t[1]}</button>`).join("")}
+   </nav><main class="wrap" id="main"></main></div>
+   <nav class="tabs" aria-label="分頁" style="--tabs:${TABS.length}">${TABS.map(t=>`<button data-act="go" data-r="${t[0]}" class="${route===t[0]||(t[0]==="trays"&&GCH&&route===GCH.id)||(t[0]==="drill"&&(route==="wrongbook"||route==="starbook"))?'on':''}">${t[1]}</button>`).join("")}</nav>`;}
+function render(){
+  stopTimer();
+  document.body.classList.toggle("mask",!!S.mask);
+  document.body.classList.toggle("imgonly",imgOnly);
+  document.body.classList.toggle("nodrill",!F.drill);document.body.classList.toggle("noatlas",!F.atlas);
+  shell();
+  const c=CH.find(x=>x.id===route);
+  let h;
+  if((GCH&&route===GCH.id)||route==="trays")h=traysPage();
+  else if(c)h=chapter(c);
+  else if(route==="key")h=keyPage();
+  else if(route==="drill")h=drillPage();
+  else if(route==="wrongbook")h=wrongPage();
+  else if(route==="starbook")h=starPage();
+  else if(route==="cmp")h=cmpPage();
+  else if(route==="mn")h=mnPage();
+  else h=home();
+  $("#main").innerHTML=h;
+  if(pendingScroll){const el=document.getElementById(pendingScroll);pendingScroll=null;if(el){el.scrollIntoView({block:"start"});window.scrollBy(0,-70);}}
+  if(route==="drill"){const cur=curQ();if(cur&&isOpen(cur))startTimer();}
+}
+function keepScroll(fn){const y=window.scrollY;fn();window.scrollTo(0,y);}
+function toast(t,ms,cls){const o=$(".toast");if(o)o.remove();const d=document.createElement("div");d.className="toast"+(cls?" "+cls:"");d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),ms||2200);}
+
+/* ---------- 放大 ---------- */
+let LB=null;
+function openLB(btn){const list=[...document.querySelectorAll('#main [data-act="zoom"]')];
+  LB={list:list.map(b=>({img:b.dataset.img,cap:b.dataset.cap||""})),i:Math.max(0,list.indexOf(btn)),z:1};drawLB();}
+function drawLB(){let el=$(".lb");if(!el){el=document.createElement("div");el.className="lb";document.body.appendChild(el);}
+  const cur=LB.list[LB.i],d=DIM[cur.img];const hide=S.mask||route==="drill"||/測驗/.test(cur.cap);
+  el.innerHTML=`<div class="lb-bar"><button data-act="lbprev" aria-label="上一張">‹</button><button data-act="lbout" aria-label="縮小">－</button><button data-act="lbin" aria-label="放大">＋</button><button data-act="lbnext" aria-label="下一張">›</button><button data-act="lbclose">關閉</button></div>
+   <div class="lb-view"><img src="${figSrc(cur.img)}" alt="" style="width:${Math.round(LB.z*100)}%;max-width:${Math.round(d[0]*1.6*LB.z)}px"></div>
+   <div class="lb-cap">${hide?'':esc(cur.cap)+'　'}${LB.i+1} / ${LB.list.length}</div>`;}
+function closeLB(){const el=$(".lb");if(el)el.remove();LB=null;}
+
+/* ---------- 搜尋 ---------- */
+function openSearch(){const el=document.createElement("div");el.className="sheet";el.id="sheet";
+  el.innerHTML=`<div class="sheet-in"><div class="srow"><input id="sq" type="search" placeholder="${esc(LBL.searchHint||"輸入英文或中文")}" aria-label="搜尋"><button class="pill" data-act="sclose">關閉</button></div><div id="shits"></div></div>`;
+  document.body.appendChild(el);const q=$("#sq");q.addEventListener("input",()=>drawHits(q.value));q.focus();drawHits("");}
+function drawHits(v){v=v.trim().toLowerCase();const box=$("#shits");if(!box)return;
+  if(!v){box.innerHTML='<p class="muted">可搜尋'+LBL.item+'名稱、'+LBL.f+'、'+LBL.c+'、'+LBL.group+'清單與口訣。</p>';return;}
+  const hits=[];
+  Object.entries(I).forEach(([id,it])=>{const txt=[it.n,it.z,it.f.join(" "),it.c.join(" "),it.ef||"",it.ec||"",it.hw||""].join(" ").toLowerCase();
+    if(txt.includes(v))hits.push(`<button class="hit" data-act="jump" data-id="${id}"><b>${NM(it)}</b><small>${esc(chOf(id).t)}｜${esc(plainTxt(it.f[0]))}</small></button>`);});
+  Object.entries(T).forEach(([tid,t])=>t.list.forEach(r=>{if((r[1]+" "+r[2]+" "+r[4]+" "+r[6]).toLowerCase().includes(v))hits.push(`<button class="hit" data-act="gotray" data-id="${tid}"><b>${esc(r[1])}(${esc(r[2])})</b><small>${esc(t.z)} ${r[0]} 號</small></button>`);}));
+  MN.forEach(m=>{if((m.topic+m.mn+m.ans).toLowerCase().includes(v))hits.push(`<button class="hit" data-act="gomn" data-id="${m.id}"><b>口訣：${esc(m.mn)}</b><small>${esc(plainTxt(m.topic))}</small></button>`);});
+  box.innerHTML=hits.length?hits.slice(0,60).join(""):'<p class="muted">找不到符合的內容。</p>';}
+function closeSearch(){const el=$("#sheet");if(el)el.remove();}
+
+/* ---------- 事件 ---------- */
+document.addEventListener("click",ev=>{try{
+  const k=ev.target.closest(".k");
+  if(k&&S.mask&&!ev.target.closest("[data-act]")){k.classList.toggle("show");return;}
+  if(k&&S.mask&&ev.target.closest('[data-act="jump"],[data-act="go"]')===null&&ev.target.closest("[data-act]")&&!k.classList.contains("show")){/* 交給下方 */}
+  const b=ev.target.closest("[data-act]");if(!b)return;
+  const a=b.dataset.act;
+  if(a==="go"){closeSearch();chFilter="all";go(b.dataset.r);window.scrollTo(0,0);}
+  else if(a==="mask"){S.mask=!S.mask;save();keepScroll(render);}
+  else if(a==="search")openSearch();
+  else if(a==="sclose")closeSearch();
+  else if(a==="jump"){closeSearch();closeLB();const id=b.dataset.id,c=chOf(id);chFilter="all";go(c.id,"i-"+id);}
+  else if(a==="gotray"){closeSearch();go("trays",b.dataset.id);}
+  else if(a==="gomn"){closeSearch();mnFilter="all";go("mn",b.dataset.id);}
+  else if(a==="scroll"){const el=document.getElementById(b.dataset.id);if(el){el.scrollIntoView({block:"start"});window.scrollBy(0,-70);}}
+  else if(a==="star"){const id=b.dataset.id;if(S.star[id])delete S.star[id];else S.star[id]=Date.now();save();keepScroll(render);}
+  else if(a==="chf"){chFilter=b.dataset.f;keepScroll(render);}
+  else if(a==="imgonly"){imgOnly=!imgOnly;keepScroll(render);}
+  else if(a==="keyf"){keyFilter=b.dataset.f;keepScroll(render);}
+  else if(a==="mnf"){mnFilter=b.dataset.f;keepScroll(render);}
+  else if(a==="zoom")openLB(b);
+  else if(a==="lbclose")closeLB();
+  else if(a==="lbin"){LB.z=Math.min(4,LB.z+0.5);drawLB();}
+  else if(a==="lbout"){LB.z=Math.max(0.5,LB.z-0.5);drawLB();}
+  else if(a==="lbprev"){LB.i=(LB.i-1+LB.list.length)%LB.list.length;LB.z=1;drawLB();}
+  else if(a==="lbnext"){LB.i=(LB.i+1)%LB.list.length;LB.z=1;drawLB();}
+  else if(a==="ans"){const key=b.dataset.c+"#"+b.dataset.i;if(S.quiz[key]!=null)return;S.quiz[key]=+b.dataset.j;save();
+    keepScroll(()=>{render();const d=document.getElementById("quiz-"+b.dataset.c);if(d)d.open=true;});}
+  else if(a==="requiz"){const c=b.dataset.c;Object.keys(S.quiz).forEach(k=>{if(k.startsWith(c+"#"))delete S.quiz[k];});save();
+    keepScroll(()=>{render();const d=document.getElementById("quiz-"+c);if(d)d.open=true;});}
+  else if(a==="done"){const c=b.dataset.c;const qs=QZ[c]||[];const nA=qs.filter((_,i)=>S.quiz[c+"#"+i]!=null).length;
+    if(nA<qs.length){toast(`還有 ${qs.length-nA} 題沒作答`);const d=document.getElementById("quiz-"+c);if(d)d.open=true;return;}
+    if(S.done[c])delete S.done[c];else S.done[c]=1;save();keepScroll(render);}
+  else if(a==="copy"){const t=PROMPT;const ok=()=>toast("已複製提示詞");
+    const fb=()=>{const p=$("#prompt");const r=document.createRange();r.selectNodeContents(p);const s=getSelection();s.removeAllRanges();s.addRange(r);toast("已選取文字，請按複製");};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok).catch(fb);else fb();}
+  else if(a==="editdate"){const r=$("#daterow");if(r)r.hidden=!r.hidden;}
+  else if(a==="savedate"){const v=$("#examdate").value;if(/^\d{4}-\d{2}-\d{2}$/.test(v)){S.exam=v;save();render();toast("已更新跑考日期");}else toast("請選一個日期");}
+  else if(a==="resetdate"){S.exam="";save();render();toast("已恢復預設日期");}
+  else if(a==="dunit"){if(b.checked)D.units.add(b.dataset.id);else D.units.delete(b.dataset.id);keepScroll(render);}
+  else if(a==="dall"){D.units=new Set(b.dataset.v==="1"?DCH.map(c=>c.id):[]);keepScroll(render);}
+  else if(a==="dcount"){D.count=b.dataset.v==="all"?"all":+b.dataset.v;keepScroll(render);}
+  else if(a==="dorder"){D.order=b.dataset.v;keepScroll(render);}
+  else if(a==="dmust"){D.must=b.dataset.v==="1";keepScroll(render);}
+  else if(a==="dsec"){D.sec=+b.dataset.v;keepScroll(render);}
+  else if(a==="dstart"){const ids=buildList();if(!ids.length){toast(selIds().length?"這個順序目前沒有可出的題目":"請至少選一個章節");return;}startRun(ids,"");}
+  else if(a==="dfav"){startRun(shuffle(starSet()),"收藏");}
+  else if(a==="dwrong"){startRun(shuffle(nowWrong()),"錯題");}
+  else if(a==="dquick"){startRun(shuffle(dueSet()),"今天到期");}
+  else if(a==="dredo"){startRun(shuffle(D.run.q.filter(x=>x.ok===false).map(x=>x.id)),"重練錯題");}
+  else if(a==="dquit"){D.run.done=true;render();window.scrollTo(0,0);}
+  else if(a==="dhome"){D.run=null;route="drill";try{location.hash="drill";}catch(e){}render();window.scrollTo(0,0);}
+  else if(a==="drf"){D.rf=b.dataset.v;keepScroll(render);}
+  else if(a==="dgo"){D.run.i=+b.dataset.i;render();}
+  else if(a==="dprev"){if(D.run.i>0){D.run.i--;render();window.scrollTo(0,0);}}
+  else if(a==="dnext"){const r=D.run;if(r.q[r.i].ok==null)return;if(r.i===r.q.length-1)r.done=true;else r.i++;render();window.scrollTo(0,0);}
+  else if(a==="dflip"){const cur=curQ();if(cur&&!cur.flip){cur.flip=true;keepScroll(render);}}
+  else if(a==="dopt"){const cur=curQ();if(!cur||cur.ok!=null)return;const it=I[cur.id];cur.pick=+b.dataset.v;cur.flip=true;cur.ok=cur.pick===it.mc.a;record(cur.id,cur.ok,cur.ms);keepScroll(render);}
+  else if(a==="dmode"){D.mode=b.dataset.v;D.run=null;D.confirm=false;D.undo=null;W.sel={};W.out="";B.sel={};B.out="";keepScroll(render);}
+  else if(a==="dloff"){saveOffline("dloff","下載離線版");}
+  else if(a==="dltpl"){(async()=>{let dl=null;try{dl=(window.claude&&window.claude.use)?await window.claude.use("downloads"):null;}catch(e){dl=null;}
+    if(dl){try{await dl.save({filename:"template.html",data:templateHTML()});toast("已下載 template.html");}catch(e){toast(e&&e.code==="declined"?"已取消下載":"無法下載，請改按「複製模板」");}return;}
+    try{const x=document.createElement("a");x.href=URL.createObjectURL(new Blob([templateHTML()],{type:"text/html"}));x.download="template.html";document.body.appendChild(x);x.click();setTimeout(()=>{URL.revokeObjectURL(x.href);x.remove();},1000);toast("已下載 template.html");}catch(e){toast("無法下載，請改按「複製模板」");}})();}
+  else if(a==="copytpl"){const t=templateHTML();if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast("模板已複製",800,"copied")).catch(()=>toast("複製失敗，請改用下載"));else toast("複製失敗，請改用下載");}
+  else if(a==="dcard"){const cur=curQ();if(!cur||!cur.flip||cur.ok!=null)return;cur.ok=b.dataset.v==="ok";record(cur.id,cur.ok,cur.ms);keepScroll(render);}
+  else if(a==="dguess"){const cur=curQ(),p=cur&&S.rec[RK(cur.id)];if(!cur||!cur.ok||!p)return;
+    if(!cur.g){cur.prev={iv:p.iv,due:p.due};p.iv=0;p.due=twToday()+1;p.g=1;cur.g=true;}
+    else{p.iv=cur.prev.iv;p.due=cur.prev.due;p.g=0;cur.g=false;}save();keepScroll(render);}
+  else if(a==="dstar"){const id=b.dataset.id;if(S.star[id]){delete S.star[id];toast("已取消收藏");}else{S.star[id]=Date.now();toast("已收藏，可在收藏本查看");}save();keepScroll(render);}
+  else if(a==="dx"){const t=outText([b.dataset.id]);D.run.x[b.dataset.id]=t;keepScroll(render);copyText(t);}
+  else if(a==="dxround"){const ids=D.run.q.filter(x=>x.ok===false).map(x=>x.id);const t=outText(ids);D.run.x.round=t;keepScroll(render);copyText(t);}
+  else if(a==="wsort"){W.sort=b.dataset.v;keepScroll(render);}
+  else if(a==="wsel"){W.sel[b.dataset.id]=b.checked;keepScroll(render);}
+  else if(a==="wall"){const ids=wrongSet();const all=ids.every(i=>W.sel[i]);ids.forEach(i=>W.sel[i]=!all);keepScroll(render);}
+  else if(a==="wgo"){const ids=wrongIds().filter(i=>W.sel[i]);if(!ids.length){toast("先勾選要練習的"+LBL.item+"");return;}startRun(shuffle(ids),"錯題本勾選");}
+  else if(a==="wout"){const ids=wrongIds().filter(i=>W.sel[i]);if(!ids.length){toast("先勾選要輸出的"+LBL.item+"");return;}W.out=outText(ids);keepScroll(render);copyText(W.out);}
+  else if(a==="bsort"){B.sort=b.dataset.v;keepScroll(render);}
+  else if(a==="bsel"){B.sel[b.dataset.id]=b.checked;keepScroll(render);}
+  else if(a==="ball"){const ids=starSet();const all=ids.every(i=>B.sel[i]);ids.forEach(i=>B.sel[i]=!all);keepScroll(render);}
+  else if(a==="bgo"){const ids=starIds().filter(i=>B.sel[i]);if(!ids.length){toast("先勾選要練習的"+LBL.item+"");return;}startRun(shuffle(ids),"收藏本勾選");}
+  else if(a==="bout"){const ids=starIds().filter(i=>B.sel[i]);if(!ids.length){toast("先勾選要輸出的"+LBL.item+"");return;}B.out=outText(ids);keepScroll(render);copyText(B.out);}
+  else if(a==="bun"){const ids=starIds().filter(i=>B.sel[i]);if(!ids.length){toast("先勾選要取消收藏的"+LBL.item+"");return;}
+    const u={};ids.forEach(i=>{u[i]=S.star[i];delete S.star[i];});B.undo.push(u);B.out="";save();keepScroll(render);toast(`已取消收藏 ${ids.length} 個，可以按「↩ 復原」`);}
+  else if(a==="bundo"){const u=B.undo.pop();if(!u)return;Object.keys(u).forEach(i=>{S.star[i]=u[i];B.sel[i]=true;});save();keepScroll(render);toast("已復原收藏");}
+  else if(a==="wclear"){if(!modeKeys().length){toast("目前沒有作答紀錄");return;}D.confirm=true;keepScroll(render);}
+  else if(a==="wcancel"){D.confirm=false;keepScroll(render);}
+  else if(a==="wclear2"){const drop={},keep={};Object.keys(S.rec).forEach(k=>{(k.startsWith("C:")===(D.mode==="choice")?drop:keep)[k]=S.rec[k];});D.undo={rec:drop,tavg:S.tavg,known:S.known,sel:W.sel,n:Object.keys(drop).length};S.rec=keep;S.tavg={n:0,s:0};if(D.mode!=="choice")S.known={};W.sel={};W.out="";D.confirm=false;save();keepScroll(render);toast("已清除，可以按「↩ 復原紀錄」救回");}
+  else if(a==="wundo"){if(!D.undo)return;Object.assign(S.rec,D.undo.rec);S.tavg=D.undo.tavg;S.known=D.undo.known;W.sel=D.undo.sel;D.undo=null;save();keepScroll(render);toast("已復原作答紀錄");}
+}catch(e){console.error(e);toast("發生錯誤："+(e&&e.message||e));}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeLB();closeSearch();}});
+
+route=parseHash();render();cloudInit();
+})();
+</script>
+</body></html>

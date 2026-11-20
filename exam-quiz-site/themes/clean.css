@@ -1,0 +1,10 @@
+/* 簡潔清爽：白底、藍色主色、淺灰框線 */
+:root{
+  --bg:#f6f7f9; --grid:#eef0f3; --surface:#ffffff; --surface2:#f1f3f6; --ink:#1f2328; --muted:#5f6670; --line:#dde1e6; --hema:#2563eb; --hema-soft:#e3ecfd; --eosin:#0e7490; --eosin-soft:#dff3f7; --label:#2563eb; --label-ink:#ffffff; --label-soft:#e8effd; --good:#18794a; --good-soft:#dcf1e5; --bad:#bf3329; --bad-soft:#fbe1de; --warn:#7d5a00; --warn-soft:#fdf0cc;
+  --hand:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif; --body:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111418; --grid:#161a1f; --surface:#1a1f26; --surface2:#222831; --ink:#e7eaee; --muted:#a0a8b3; --line:#30363f; --hema:#7aa7ff; --hema-soft:#1d2b47; --eosin:#5cc8dd; --eosin-soft:#143640; --label:#7aa7ff; --label-ink:#0d1424; --label-soft:#1d2738; --good:#6fd39f; --good-soft:#163a28; --bad:#f39088; --bad-soft:#46211e; --warn:#f1c967; --warn-soft:#3b3118; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111418; --grid:#161a1f; --surface:#1a1f26; --surface2:#222831; --ink:#e7eaee; --muted:#a0a8b3; --line:#30363f; --hema:#7aa7ff; --hema-soft:#1d2b47; --eosin:#5cc8dd; --eosin-soft:#143640; --label:#7aa7ff; --label-ink:#0d1424; --label-soft:#1d2738; --good:#6fd39f; --good-soft:#163a28; --bad:#f39088; --bad-soft:#46211e; --warn:#f1c967; --warn-soft:#3b3118; color-scheme:dark}

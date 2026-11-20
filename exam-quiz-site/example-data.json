@@ -1,0 +1,254 @@
+{
+ "schema": "exam-quiz-site/1",
+ "site": {
+  "title": "學校病理學期中刷題_1151_作者_v1.0",
+  "h1": "病理學期中",
+  "h1em": "刷題",
+  "version": "v1.0",
+  "band": [
+   "學校・病理學・醫學系・1151・by 作者",
+   "期中範圍 L01–L02"
+  ],
+  "deco": "tissue",
+  "storageKey": "example-patho-mid",
+  "dbDoc": "progress-mid"
+ },
+ "info": [
+  {
+   "h": "收錄範圍",
+   "t": "2 份期中考古題，共 {total} 題。"
+  },
+  {
+   "h": "答案來源",
+   "t": "有參考答案的標「已對照參考答案」，其餘依講義判斷。"
+  }
+ ],
+ "answerSources": {
+  "official": {
+   "label": "已對照參考答案",
+   "cls": "ok"
+  },
+  "lecture": {
+   "label": "依講義判斷",
+   "cls": "chk"
+  }
+ },
+ "exams": [
+  {
+   "key": "mid",
+   "name": "期中考",
+   "date": "2026-11-30"
+  }
+ ],
+ "units": [
+  {
+   "id": 1,
+   "code": "L01",
+   "name": "細胞損傷",
+   "sub": "9/10・Cell injury・老師"
+  },
+  {
+   "id": 2,
+   "code": "L02",
+   "name": "發炎",
+   "sub": "9/17・Inflammation・老師"
+  }
+ ],
+ "lectures": [
+  "L01_Cell injury_9/10",
+  "L02_Inflammation_9/17"
+ ],
+ "yearGroups": [
+  {
+   "label": "期中卷",
+   "years": [
+    "1141",
+    "1132"
+   ]
+  }
+ ],
+ "yearLabels": {
+  "1141": "1141 期中",
+  "1132": "1132 期中"
+ },
+ "papers": {
+  "11401M": {
+   "year": "1141",
+   "raw": 50,
+   "suffix": ""
+  },
+  "11302M": {
+   "year": "1132",
+   "raw": 50,
+   "suffix": ""
+  }
+ },
+ "excluded": {
+  "11401M-50": "原卷缺頁"
+ },
+ "alias": {},
+ "coverageExtra": [],
+ "coverageNote": "重複題合併成一題並列出所有出處。",
+ "qs": [
+  {
+   "id": "11401M-1",
+   "u": 1,
+   "ys": [
+    "1141",
+    "1132"
+   ],
+   "src": [
+    "11401M-1",
+    "11302M-4"
+   ],
+   "q": "Which change is irreversible cell injury?",
+   "o": [
+    "Cell swelling",
+    "Fatty change",
+    "Karyolysis",
+    "Membrane blebbing"
+   ],
+   "a": [
+    "C"
+   ],
+   "e": [
+    "可逆：Na⁺/K⁺ pump 失能造成水腫。",
+    "可逆：脂質堆積。",
+    "正確：karyolysis(核溶解) 屬於不可逆的細胞核變化（講義 p.12）。",
+    "可逆：細胞膜起泡。"
+   ],
+   "m": 0,
+   "k": {
+    "白": "細胞核壞掉就回不去了。",
+    "專": "Pyknosis、karyorrhexis、karyolysis 為不可逆損傷的細胞核變化。",
+    "錯": "Cell swelling 是最早出現的可逆變化，不是不可逆。"
+   },
+   "t": [
+    "injury"
+   ],
+   "n": "",
+   "as": "official"
+  },
+  {
+   "id": "11401M-2",
+   "u": 2,
+   "ys": [
+    "1141"
+   ],
+   "src": [
+    "11401M-2"
+   ],
+   "q": "Chemical mediators of vasodilation（多選）",
+   "o": [
+    "Histamine",
+    "Prostaglandin",
+    "Nitric oxide",
+    "Thromboxane A2"
+   ],
+   "a": [
+    "A",
+    "B",
+    "C"
+   ],
+   "e": [
+    "正確：histamine(組織胺) 擴張小動脈。",
+    "正確：PGI2、PGE2 造成血管擴張。",
+    "正確：nitric oxide(一氧化氮) 鬆弛平滑肌。",
+    "Thromboxane A2 會收縮血管、促進血小板凝集。"
+   ],
+   "m": 1,
+   "k": {
+    "白": "讓血管變粗的物質。",
+    "專": "Vasodilation：histamine、PGs、NO。",
+    "錯": "TXA2 是收縮。"
+   },
+   "t": [],
+   "n": "",
+   "as": "lecture"
+  },
+  {
+   "id": "11401M-E1",
+   "u": 1,
+   "w": 1,
+   "ys": [
+    "1141"
+   ],
+   "src": [
+    "11401M-E1"
+   ],
+   "q": "試述可逆性與不可逆性細胞損傷在形態學上的差異，並各舉兩個例子。（10 分）",
+   "ans": [
+    "可逆：細胞與胞器腫脹（water influx），形態改變但移除刺激後可恢復；例：cellular swelling(細胞腫脹)、fatty change(脂肪變性)。",
+    "不可逆：細胞膜與粒線體結構破壞、溶酶體酵素外漏，細胞核出現變化；例：pyknosis(核濃縮)、karyolysis(核溶解)。",
+    "關鍵分界：粒線體永久損傷與細胞膜完整性喪失，是從可逆走向不可逆的轉折點。"
+   ],
+   "kw": [
+    "cellular swelling",
+    "fatty change",
+    "pyknosis",
+    "karyolysis",
+    "mitochondria",
+    "membrane integrity"
+   ],
+   "e": [
+    "判斷可逆／不可逆的核心不是「腫多少」，而是細胞膜與粒線體還能不能恢復功能（講義 p.10–14）。",
+    "答題時先寫形態學差異、再各舉兩例，最後補上分界點，三段式最容易拿滿分。"
+   ],
+   "k": {
+    "白": "還救得回來的叫可逆，細胞核壞掉就回不去了。",
+    "專": "Reversible：cellular swelling、fatty change。Irreversible：membrane damage、mitochondrial permanent dysfunction、nuclear changes。",
+    "錯": "把 cell swelling 寫成不可逆是最常見的失分點。"
+   },
+   "t": [
+    "injury"
+   ],
+   "n": "",
+   "as": "official"
+  },
+  {
+   "id": "11401M-E2",
+   "u": 2,
+   "w": 1,
+   "ys": [
+    "1141"
+   ],
+   "src": [
+    "11401M-E2"
+   ],
+   "q": "列出急性發炎的三個主要血管反應，並說明各自的意義。（6 分）",
+   "ans": [
+    "血管擴張（vasodilation）：血流量增加，造成紅與熱。",
+    "血管通透性上升：蛋白質與體液滲出形成 exudate(滲出液)，造成腫。",
+    "白血球邊緣化與黏附（margination／adhesion）：嗜中性白血球離開血流進入組織。"
+   ],
+   "kw": [
+    "vasodilation",
+    "permeability",
+    "exudate",
+    "margination"
+   ],
+   "e": [],
+   "k": {
+    "白": "血管變粗、變漏、白血球跑出來。",
+    "專": "Vasodilation、increased permeability、leukocyte margination 為急性發炎三大血管反應。",
+    "錯": "把「白血球聚集」寫成細胞反應而漏掉血管反應這一層。"
+   },
+   "t": [],
+   "n": "",
+   "as": "lecture"
+  }
+ ],
+ "topics": {
+  "injury": {
+   "t": "可逆與不可逆損傷",
+   "s": "L01 細胞損傷",
+   "k": [
+    "可逆：cell swelling、fatty change",
+    "不可逆：細胞核變化、膜嚴重破壞"
+   ],
+   "c": [
+    "Cell swelling 最早出現但可逆"
+   ]
+  }
+ }
+}

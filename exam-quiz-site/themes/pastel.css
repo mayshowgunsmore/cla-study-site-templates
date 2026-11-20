@@ -1,0 +1,10 @@
+/* 柔和粉彩：奶油底、珊瑚粉主色、薄荷綠強調 */
+:root{
+  --bg:#fbf6f1; --grid:#f4ece4; --surface:#fffdfa; --surface2:#f7efe8; --ink:#3a2f2c; --muted:#7b6c66; --line:#eadcd2; --hema:#d9617a; --hema-soft:#fbe3e8; --eosin:#2f9d86; --eosin-soft:#ddf3ec; --label:#f6c76b; --label-ink:#3a2a06; --label-soft:#fdf1d6; --good:#18794a; --good-soft:#dcf1e5; --bad:#bf3329; --bad-soft:#fbe1de; --warn:#7d5a00; --warn-soft:#fdf0cc;
+  --hand:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif; --body:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1b1716; --grid:#211c1b; --surface:#262020; --surface2:#2f2827; --ink:#f1e8e4; --muted:#b9aaa4; --line:#3f3533; --hema:#f08ca0; --hema-soft:#4a2630; --eosin:#6fd3bc; --eosin-soft:#173a33; --label:#f6c76b; --label-ink:#2a1e04; --label-soft:#3d3218; --good:#6fd39f; --good-soft:#163a28; --bad:#f39088; --bad-soft:#46211e; --warn:#f1c967; --warn-soft:#3b3118; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1b1716; --grid:#211c1b; --surface:#262020; --surface2:#2f2827; --ink:#f1e8e4; --muted:#b9aaa4; --line:#3f3533; --hema:#f08ca0; --hema-soft:#4a2630; --eosin:#6fd3bc; --eosin-soft:#173a33; --label:#f6c76b; --label-ink:#2a1e04; --label-soft:#3d3218; --good:#6fd39f; --good-soft:#163a28; --bad:#f39088; --bad-soft:#46211e; --warn:#f1c967; --warn-soft:#3b3118; color-scheme:dark}

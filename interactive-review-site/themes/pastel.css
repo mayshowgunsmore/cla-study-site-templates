@@ -1,0 +1,30 @@
+/* 柔和粉彩：奶油底、珊瑚粉與薄荷綠 */
+:root{
+  --paper:#FBF5EF; --grid:#F3EAE1; --surface:#FFFDFA; --surface2:#F7EEE6;
+  --ink:#3A2F2C; --muted:#7B6C66; --line:#EADCD2; --blue:#4D8FBF;
+  --blue-soft:#E2EEF7; --main:#C9566F; --on-main:#FFFDFA; --red:#D9617A;
+  --red-soft:#FBE3E8; --green:#2F9D86; --green-soft:#DDF3EC; --hi:#F6C76B;
+  --hi-soft:#FDF1D6; --hi-ink:#8A6410; --tape:#F4C9D3; --mask:#E6D6CB;
+  --good:#2F8F6F; --bad:#C24A5E;
+  --sans:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  --hand:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#1A1615; --grid:#201B1A; --surface:#251F1E; --surface2:#2F2827;
+  --ink:#F1E8E4; --muted:#B9AAA4; --line:#3F3533; --blue:#8EC1E8;
+  --blue-soft:#1E2F3D; --main:#F08CA0; --on-main:#2A1418; --red:#F08CA0;
+  --red-soft:#4A2630; --green:#6FD3BC; --green-soft:#173A33; --hi:#F6C76B;
+  --hi-soft:#3D3218; --hi-ink:#F3CF80; --tape:#5A3A43; --mask:#4A3E3B;
+  --good:#6FD3BC; --bad:#F2948A;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#1A1615; --grid:#201B1A; --surface:#251F1E; --surface2:#2F2827;
+  --ink:#F1E8E4; --muted:#B9AAA4; --line:#3F3533; --blue:#8EC1E8;
+  --blue-soft:#1E2F3D; --main:#F08CA0; --on-main:#2A1418; --red:#F08CA0;
+  --red-soft:#4A2630; --green:#6FD3BC; --green-soft:#173A33; --hi:#F6C76B;
+  --hi-soft:#3D3218; --hi-ink:#F3CF80; --tape:#5A3A43; --mask:#4A3E3B;
+  --good:#6FD3BC; --bad:#F2948A;
+  color-scheme:dark;
+}
