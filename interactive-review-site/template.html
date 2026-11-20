@@ -63,6 +63,13 @@ h1,h2,h3,h4{line-height:1.35;text-wrap:balance;margin:0}
 }
 
 /* 紙膠帶卡片 */
+details.xcard>summary{list-style:none;cursor:pointer}
+details.xcard>summary::-webkit-details-marker{display:none}
+details.xcard>summary .xhint{display:inline-block;margin-top:6px;font-size:.8rem;color:var(--blue)}
+details.xcard[open]>summary .xhint{color:var(--muted)}
+details.xcard .xbody:not(:empty){margin-top:10px}
+details.xcard .xbody .sec{margin:0}
+details.xcard .xgo{display:block;text-align:right;font-size:.82rem;margin-top:6px}
 .card{position:relative;background:var(--surface);border:1.5px solid var(--line);border-radius:4px;
   box-shadow:2px 3px 0 var(--line);padding:18px 18px 16px}
 .card.tape::before{content:"";position:absolute;top:-11px;left:22px;width:76px;height:22px;background:var(--tape);
@@ -480,7 +487,7 @@ const ALLSECS=Object.keys(SECS);
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 function mark(h){return String(h).replace(/==([^=]+)==/g,'<span class="k">$1</span>')}
 const LBL=Object.assign({must:'教材標必考',keySub:'只收教材明寫的字樣，引用原文並附頁碼；不含本站自行判斷的重點',sprintSub:'考古題重複出現的考點、教材疑誤、教材以外但考過的內容',mnSub:'全部為本站自編，不是教材或老師提供；開啟遮重點可以蓋住解答來默背'},SD.labels||{});
-const TAGDEF=SD.tagDefs||{};const TAGN=Object.assign({must:LBL.must,past:'考過',nat:'國考',imp:'很重要'},Object.fromEntries(Object.entries(TAGDEF).map(([k,v])=>[k,(v&&v.name)||k])));
+const TAGDEF=SD.tagDefs||{};const TAGN=Object.assign({must:LBL.must,past:'考過',nat:'國考',imp:'很重要',teach:'老師提到',skip:'可先略過'},Object.fromEntries(Object.entries(TAGDEF).map(([k,v])=>[k,(v&&v.name)||k])));
 const QLAB=['A','B','C','D','E','F'];
 function icon(p){return `<svg viewBox="0 0 24 24">${p}</svg>`}
 const I={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',key:'<path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/>',
@@ -716,6 +723,15 @@ function secHTML(s,open){
     </div></div></details>`;
 }
 
+function xHint(){return '<span class="xhint">▾ 點一下展開這張複習卡</span>'}
+function xLab(sec,cls){return `<span class="chip ${cls||'past'}">${SECS[sec].ch.no}　${esc(SECS[sec].t)}</span>`}
+function fillX(card){
+  const id=card.dataset.xsec,body=card.querySelector(':scope>.xbody');if(!body||!SECS[id])return;
+  if(!card.open){body.innerHTML='';return}
+  SHELL.querySelectorAll('details.xcard[open]').forEach(o=>{if(o!==card&&o.dataset.xsec===id){o.open=false;const b=o.querySelector(':scope>.xbody');if(b)b.innerHTML=''}});
+  body.innerHTML=secHTML(SECS[id],true)+`<a class="xgo" href="#${id}">到章節中的位置 →</a>`;
+  initWidgets();annotate(body);annotateQuiz(body);
+}
 function pageKey(){
   const tf=ST.keyType||'all',cf=ST.keyCh||'all';
   const list=KEY.filter(k=>(tf==='all'||k.t===tf)&&(cf==='all'||SECS[k.sec].ch.id===cf));
@@ -724,20 +740,20 @@ function pageKey(){
   <div class="tools">${T.map(([k,n])=>`<button class="btn${tf===k?' on':''}" data-kt="${k}">${n}</button>`).join('')}</div>
   <div class="tools">${[['all','全部章']].concat(CH.map(c=>[c.id,c.no])).map(([k,n])=>`<button class="btn${cf===k?' on':''}" data-kc="${k}">${n}</button>`).join('')}</div>
   ${tf==='skip'||tf==='all'?(SD.keyTip||''):''}
-  ${list.length?list.map(k=>`<div class="card" style="padding:13px 15px">
+  ${list.length?list.map(k=>`<details class="card xcard" data-xsec="${k.sec}" style="padding:13px 15px"><summary>
     <div class="row" style="gap:6px;margin-bottom:6px">${chip(k.t==='skip'?'skip':k.t)}<span class="chip page">${esc(k.p)}</span>
-      <a class="chip past" href="#${k.sec}" style="text-decoration:none">${SECS[k.sec].ch.no}　${esc(SECS[k.sec].t)}</a></div>
-    <div style="font-size:.95rem;line-height:1.7">「${esc(k.q)}」</div></div>`).join(''):'<p class="empty">這個條件下沒有標記</p>'}`;
+      ${xLab(k.sec)}</div>
+    <div style="font-size:.95rem;line-height:1.7">「${esc(k.q)}」</div>${xHint()}</summary><div class="xbody"></div></details>`).join(''):'<p class="empty">這個條件下沒有標記</p>'}`;
 }
 
 function pageSprint(){
   return `<div class="ch-head"><h1>考前衝刺</h1><div class="sub">${esc(LBL.sprintSub)}</div></div>
   <h2 class="h">${esc((SD.sprint&&SD.sprint.hotTitle)||"考古題重複出現的考點")}</h2>
   ${SD.sprint&&SD.sprint.hotLead?`<p class="lead">${SD.sprint.hotLead}</p>`:""}
-  ${HOT.map(h=>`<div class="card" style="padding:12px 15px"><div class="row" style="gap:6px;margin-bottom:4px">
-    <a class="chip past" href="#${h.sec}" style="text-decoration:none">${SECS[h.sec].ch.no}</a>
+  ${HOT.map(h=>`<details class="card xcard" data-xsec="${h.sec}" style="padding:12px 15px"><summary><div class="row" style="gap:6px;margin-bottom:4px">
+    <span class="chip past">${SECS[h.sec].ch.no}</span>
     <b style="font-size:.95rem">${esc(h.t)}</b></div>
-    <div class="num" style="font-size:.8rem;color:var(--muted)">${esc(h.n)}</div></div>`).join('')}
+    <div class="num" style="font-size:.8rem;color:var(--muted)">${esc(h.n)}</div>${xHint()}</summary><div class="xbody"></div></details>`).join('')}
   <h2 class="h">${esc((SD.sprint&&SD.sprint.fixTitle)||"教材疑誤")}</h2>
   ${SD.sprint&&SD.sprint.fixLead?`<p class="lead">${SD.sprint.fixLead}</p>`:""}
   <div class="tw"><table><thead><tr><th>章節</th><th>項目</th>${(((SD.sprint||{}).fixHead)||["教材寫法","對照","怎麼記"]).map(x=>`<th>${esc(x)}</th>`).join("")}</tr></thead><tbody>
@@ -745,9 +761,9 @@ function pageSprint(){
     <td>${esc(f.n)}</td><td>${esc(f.h)}</td><td>${esc(f.r)}</td></tr>`).join('')}
   </tbody></table></div>
   <h2 class="h">${esc((SD.sprint&&SD.sprint.extraTitle)||"教材以外、但考古題考過的內容")}</h2>
-  ${EXTRA.map(e=>`<div class="card" style="padding:12px 15px"><div class="row" style="gap:6px;margin-bottom:4px">
-    <a class="chip nat" href="#${e.sec}" style="text-decoration:none">${SECS[e.sec].ch.no}</a><b style="font-size:.95rem">${esc(e.t)}</b>
-    <span class="chip page">${esc(e.s)}</span></div><div style="font-size:.9rem">${esc(e.d)}</div></div>`).join('')}
+  ${EXTRA.map(e=>`<details class="card xcard" data-xsec="${e.sec}" style="padding:12px 15px"><summary><div class="row" style="gap:6px;margin-bottom:4px">
+    <span class="chip nat">${SECS[e.sec].ch.no}</span><b style="font-size:.95rem">${esc(e.t)}</b>
+    <span class="chip page">${esc(e.s)}</span></div><div style="font-size:.9rem">${esc(e.d)}</div>${xHint()}</summary><div class="xbody"></div></details>`).join('')}
   <h2 class="h">${esc((SD.sprint&&SD.sprint.doubtTitle)||"沒有收進測驗、或答案要再確認的考古題")}</h2>
   <div class="card"><ul style="margin:0;padding-left:1.1em;font-size:.92rem;line-height:1.8">
   ${DOUBT.map(d=>`<li>${esc(d)}</li>`).join('')}</ul></div>`;
@@ -888,7 +904,7 @@ function sideHTML(h){
 /* ---------- 互動圖 ---------- */
 function initWidgets(){
   SHELL.querySelectorAll('[data-wg]').forEach(el=>{
-    const w=WG[el.dataset.wg];if(!w)return;
+    const w=WG[el.dataset.wg];if(!w||el.dataset.wgon)return;el.dataset.wgon='1';
     const info=el.querySelector('[data-info]');
     const pick=k=>{
       const o=w.opts.find(x=>x[0]===k);if(!o)return;
@@ -986,6 +1002,7 @@ function refreshSecFoot(secId){
 }
 
 /* ---------- 事件 ---------- */
+document.addEventListener('toggle',e=>{const c=e.target;if(c&&c.matches&&c.matches('details.xcard'))try{fillX(c)}catch(err){console.error(err)}},true);
 document.addEventListener('click',e=>{
   try{
     const t=e.target;
