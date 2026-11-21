@@ -216,6 +216,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .fc-ans li::marker{color:var(--hema);font-weight:700}
 .fc-kw{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .fc-kw span{background:var(--label-soft);color:var(--label-ink);border:1px solid var(--label);border-radius:999px;padding:2px 10px;font-size:.84rem;font-weight:700}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .fc-kw span{color:var(--warn)}}
+:root[data-theme="dark"] .fc-kw span{color:var(--warn)}
 .fc-exp{display:flex;flex-direction:column;gap:6px;margin-top:6px;line-height:1.75;font-size:.95rem}
 .selfrow{display:flex;flex-wrap:wrap;gap:8px}
 .selfrow button{flex:1;min-width:116px;font-weight:700}
@@ -404,7 +406,7 @@ function fcardHTML(q,open){
     ${KW.length?(kwOn?`<div><span class="fc-lab">關鍵字提示</span><div class="fc-kw">${KW.map(k=>`<span>${esc(k)}</span>`).join("")}</div></div>`:`<div class="row"><button class="ghost" data-kw="${esc(q.id)}">想不起來？看關鍵字提示</button></div>`):""}
   </div>`;
   return `<div class="fcard open">
-    <div><span class="fc-lab">參考答案</span><ol class="fc-ans">${(q.ans||[]).map(a=>`<li>${esc(a)}</li>`).join("")}</ol></div>
+    <div><span class="fc-lab">參考答案</span><ol class="fc-ans">${(q.ans||[]).map(a=>`<li>${esc(a)}</li>`).join("")}</ol>${(q.ansImg||[]).filter(s=>/^data:image\//.test(s)).map(s=>`<figure class="qimg"><img src="${esc(s)}" alt="參考答案附圖" loading="lazy"></figure>`).join("")}</div>
     ${KW.length?`<div><span class="fc-lab">關鍵字</span><div class="fc-kw">${KW.map(k=>`<span>${esc(k)}</span>`).join("")}</div></div>`:""}
     ${(q.e||[]).length?`<div><span class="fc-lab">詳解</span><div class="fc-exp">${q.e.map(e=>`<p style="margin:0">${esc(e)}</p>`).join("")}</div></div>`:""}
   </div>`;
@@ -609,7 +611,7 @@ function exportText(qs){
     const lines=[];
     lines.push(`【出處】${q.src.map(srcOf).join("；")}`);
     lines.push(`【單元】${UNITS[q.u][0]} ${UNITS[q.u][1]}`);
-    lines.push(`【題幹】${q.q}`);if((q.img||[]).length)lines.push(`【附圖】本題有附圖，請開網站查看`);
+    lines.push(`【題幹】${q.q}`);if((q.img||[]).length)lines.push(`【附圖】本題有附圖，請開網站查看`);if((q.ansImg||[]).length)lines.push(`【參考答案附圖】請開網站查看`);
     if(isW(q)){
       lines.push(`【題型】非選題`);
       (q.ans||[]).forEach((a,k)=>lines.push(`【參考答案${k+1}】${a}`));

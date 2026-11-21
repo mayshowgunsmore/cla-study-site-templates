@@ -60,6 +60,8 @@ for q in D['qs']:
     for t in q.get('t',[]):
         if t not in topics: err(f'{i} 觀念卡 {t} 不存在')
     if 'img' in q and (not isinstance(q['img'],list) or any(not str(s).startswith('data:image/') for s in q['img'])): err(f'{i} 的 img 要是 data:image/… 字串陣列')
+    if 'ansImg' in q and (not isinstance(q['ansImg'],list) or any(not str(s).startswith('data:image/') for s in q['ansImg'])): err(f'{i} 的 ansImg 要是 data:image/… 字串陣列')
+    if 'ansImg' in q and not q.get('w'): err(f'{i} 的 ansImg 只能用在非選題（w:1）')
     k=q.get('k',{})
     if not isinstance(k,dict): err(f'{i} 的 k 要是物件')
 for k,T in topics.items():
