@@ -240,27 +240,24 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .bfilter{display:flex;flex-direction:column;gap:10px}
 .bsearch{font:inherit;width:100%;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
 .bsearch:focus{outline:3px solid var(--label);outline-offset:1px}
-.bselall{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
-.bselall input,.brow .bchk{width:20px;height:20px;accent-color:var(--hema);cursor:pointer;flex:none}
-.bgrp{font-family:var(--hand);font-weight:700;font-size:1.1rem;color:var(--hema);padding:14px 4px 2px;display:flex;gap:10px;align-items:baseline;border-bottom:2px solid var(--hema-soft)}
-.bgrp span{font-family:var(--mono);font-size:.8rem;color:var(--muted);font-weight:500}
-.blist{display:flex;flex-direction:column;gap:10px}
-.brow{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-.brow.on{border-color:var(--hema);background:var(--hema-soft)}
-.brow .bchk{margin-top:3px}
-.bbody{display:flex;flex-direction:column;gap:8px;min-width:0}
-.bmeta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.bmeta .bno{font-family:var(--mono);font-weight:700;font-size:.85rem;color:var(--eosin)}
-.bstem{font-weight:500;white-space:pre-line;line-height:1.65}
-.bopts{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:.93rem}
-.bopts li{display:grid;grid-template-columns:2.2em 1fr;gap:2px}
-.bopts li b{font-family:var(--mono);color:var(--muted)}
-.bshow{align-self:flex-start;padding:5px 14px;font-size:.85rem;border-color:var(--hema);color:var(--hema);font-weight:700}
-.bshow[aria-expanded="true"]{background:var(--hema-soft)}
-.bans{display:flex;flex-direction:column;gap:10px;border-top:1px dashed var(--line);padding-top:10px}
-.bmore{align-self:center}
 .bktools{gap:6px}.bktools .row{gap:6px}.bktools button{padding:6px 12px;font-size:.85rem}.bktools button:disabled{opacity:.45;cursor:not-allowed}.bktools button.primary{padding:6px 14px}
-@media (max-width:560px){.brow{padding:10px;gap:4px 8px}.bankbtn{padding:16px}.bktools h2{font-size:1.1rem}.bktools button{padding:5px 10px;font-size:.8rem}}
+.btable .bnum{display:block;font-family:var(--mono);color:var(--ink);white-space:nowrap}
+.btable .balso{display:block;font-size:.72rem;color:var(--hema);line-height:1.4;margin-top:2px}
+.btable .bu2{display:inline-flex;margin-top:4px}
+.bstemb{all:unset;cursor:pointer;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;width:100%;color:var(--ink);line-height:1.55;word-break:break-word}
+.btable{table-layout:fixed}.btable col.c0{width:40px}.btable col.c2{width:170px}.btable col.c4{width:56px}.btable col.c5{width:72px}.btable .src2{min-width:0}
+.bstemb:hover{color:var(--hema);text-decoration:underline}
+.bstemb:focus-visible{outline:3px solid var(--label);outline-offset:2px;border-radius:4px}
+.bstar{border:0;background:transparent;padding:2px 6px;font-size:1.2rem;line-height:1;color:var(--muted)}
+.bstar.on{color:var(--label-ink);background:var(--label-soft);border-radius:8px}
+.bmask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30}
+.bmodal{position:fixed;z-index:31;left:50%;top:50%;transform:translate(-50%,-50%);width:min(760px,calc(100% - 24px));max-height:calc(100% - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto;overscroll-behavior:contain;background:var(--bg);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 60px -20px rgba(0,0,0,.6)}
+.bmhead{display:flex;align-items:center;gap:10px;position:sticky;top:-12px;margin:-12px -12px 0;padding:10px 12px;background:var(--bg);z-index:2;border-bottom:1px solid var(--line)}
+.bmhead .bno{font-family:var(--mono);font-weight:700;color:var(--eosin)}
+.bmhead .bmx{margin-left:auto}
+.bmnav{position:sticky;bottom:-12px;margin:0 -12px -12px;padding:10px 12px;background:var(--bg);border-top:1px solid var(--line)}
+html.bmodal-open,html.bmodal-open body{overflow:hidden}
+@media (max-width:560px){.bmodal{width:calc(100% - 12px);padding:10px}.bmodal .card{padding:14px}.btable col.c0{width:28px}.btable col.c2{width:27%}.btable col.c4,.btable col.c5{width:40px}.bstemb{-webkit-line-clamp:3}.btable .bu2{padding:1px 5px;font-size:.66rem}.btable .balso{font-size:.66rem}.bktools h2{font-size:1.1rem}.bktools button{padding:5px 10px;font-size:.8rem}}
 .qimg{margin:10px 0 4px;text-align:center}.qimg img{max-width:100%;max-height:340px;border-radius:10px;border:1px solid var(--line);background:#fff}
 </style>
 </head><body>
@@ -423,7 +420,7 @@ async function save(){
 function saveSoon(){lsWrite();clearTimeout(saveTimer);saveTimer=setTimeout(save,1200);}
 
 /* ---------- state ---------- */
-let state={screen:"setup",years:new Set(YEARS),units:new Set(UIDS),count:20,order:"new",list:[],i:0,ans:{},rf:"all",copen:new Set(),locked:false,recorded:new Set(),xopen:{},wsel:new Set(),fsel:new Set(),fsort:"unit",favUndo:[],resetUndo:null,qtime:{},wsort:"unit",cramFor:null,cdedit:false,qt0:null,qacc:0,info:{},qt:"all",flip:new Set(),kwopen:new Set(),byears:new Set(YEARS),bsort:"old",bdup:true,bonly:"all",bqt:"all",bq:"",bsel:new Set(),bopen:new Set(),blimit:100};
+let state={screen:"setup",years:new Set(YEARS),units:new Set(UIDS),count:20,order:"new",list:[],i:0,ans:{},rf:"all",copen:new Set(),locked:false,recorded:new Set(),xopen:{},wsel:new Set(),fsel:new Set(),fsort:"unit",favUndo:[],resetUndo:null,qtime:{},wsort:"unit",cramFor:null,cdedit:false,qt0:null,qacc:0,info:{},qt:"all",flip:new Set(),kwopen:new Set(),byears:new Set(YEARS),bsort:"old",bdup:true,bonly:"all",bqt:"all",bq:"",bsel:new Set(),bmodal:null};
 (function(){const s=lsGet(PREF_KEY);if(s){if(s.units)state.units=new Set(s.units);if(s.years){state.years=new Set(s.years.filter(y=>YEARS.includes(y)));const known=s.ky||YEARS;YEARS.filter(y=>!known.includes(y)).forEach(y=>state.years.add(y));}if(s.count)state.count=s.count;if(s.order)state.order=s.order;if(s.cramFor)state.cramFor=s.cramFor;if(s.qt)state.qt=s.qt;}})();
 function savePrefs(){lsSet(PREF_KEY,{ky:YEARS,units:[...state.units],years:[...state.years],count:state.count,order:state.order,cramFor:state.cramFor,qt:state.qt});}
 
@@ -470,6 +467,7 @@ function render(keep){
   const app=$("#app");
   app.className="wrap s-"+state.screen;app.innerHTML=state.screen==="setup"?setupHTML():state.screen==="quiz"?quizHTML():state.screen==="wrongs"?wrongsHTML():state.screen==="favs"?favsHTML():state.screen==="bank"?bankHTML():reviewHTML();
   window.scrollTo({top:keep?y:0});
+  document.documentElement.classList.toggle("bmodal-open",state.screen==="bank"&&!!state.bmodal);
 }
 function unitStats(u){const qs=QS.filter(q=>q.u===u&&inYears(q)&&inQT(q));const seen=qs.filter(q=>P[q.id]);return {total:qs.length,seen:seen.length,wrong:seen.filter(q=>P[q.id].l===0).length};}
 function extraRows(){return (D.coverageExtra||[]).map(x=>{const qs=QS.filter(q=>q.ys.some(y=>y.startsWith(x.prefix)));const n=[...new Set(qs.flatMap(q=>q.ys.filter(y=>y.startsWith(x.prefix))))].length;const units=[...new Set(qs.map(q=>q.u))].sort((a,b)=>UORDER.indexOf(a)-UORDER.indexOf(b)).map(u=>UNITS[u][0]).join("、");return `<tr><td>${x.name}</td><td class="n">${x.papers||n+" 份"}</td><td class="n">${qs.length} 題</td><td>${fill(x.note,{units,n:qs.length})}</td></tr>`;}).join("\n");}
@@ -762,32 +760,37 @@ function bankRows(){
   rows.sort((a,b)=>dir*(a.k.y-b.k.y)||a.k.rank-b.k.rank||(a.pk<b.pk?-1:a.pk>b.pk?1:0)||a.k.num-b.k.num);
   if(!state.bdup){const seen=new Set();rows=rows.filter(r=>!seen.has(r.q.id)&&seen.add(r.q.id));}
   return rows;}
-function bankItem(r){
-  const q=r.q,on=state.bsel.has(q.id),open=state.bopen.has(r.s),w=/^E\d+$/.test(r.n);
-  const others=q.src.filter(s=>s!==r.s);
-  return `<div class="brow ${on?"on":""}"><input type="checkbox" class="bchk" data-bsel="${esc(q.id)}" ${on?"checked":""} aria-label="勾選這題">
-    <div class="bbody">
-      <div class="bmeta"><span class="bno">${esc(paperName(r.pk))}・${w?"非選 "+esc(r.n.slice(1)):"第 "+esc(r.n)+" 題"}</span><span class="tag id">${UNITS[q.u][0]}</span><span class="tag un">${esc(UNITS[q.u][1])}</span>${isW(q)?`<span class="tag wq">非選題</span>`:q.m?`<span class="tag multi">多選</span>`:""}${(q.img||[]).length?`<span class="tag">🖼 附圖</span>`:""}${others.length?`<span class="tag yr" title="${esc(others.map(srcOf).join("；"))}">也考過：${others.map(srcShort).join("、")}</span>`:""}${P[q.id]?(P[q.id].l===1?`<span class="tag ok">最近答對</span>`:`<span class="tag multi">最近答錯</span>`):""}
-        <button class="star ${FAV[q.id]?"on":""}" data-fav="${esc(q.id)}" aria-pressed="${!!FAV[q.id]}">${FAV[q.id]?"★ 已收藏":"☆ 收藏"}</button></div>
-      <div class="bstem">${esc(q.q)}</div>
-      ${open?qimgHTML(q):""}
-      ${!isW(q)&&!open?`<ol class="bopts">${OPT(q).map((o,k)=>`<li><b>(${LET[k]})</b><span>${esc(o)}</span></li>`).join("")}</ol>`:""}
-      <button class="bshow" data-bopen="${esc(r.s)}" aria-expanded="${open}">${open?"收起答案 ▴":isW(q)?"看參考答案與附圖 ▾":(q.img||[]).length?"看附圖、答案與詳解 ▾":"看答案與詳解 ▾"}</button>
-      ${open?`<div class="bans">${isW(q)?fcardHTML(q,true):`<div class="verdict ok" style="font-size:1.1rem">正解：${q.a.join("、")}</div><div class="opts">${OPT(q).map((_,k)=>optHTML(q,k,[],true)).join("")}</div>`}
-        ${q.n?`<div class="note">${q.n.startsWith("⚠️")?"":"註："}${esc(q.n)}</div>`:""}
-        ${conceptHTML(q)}
-        <div class="row"><button class="xbtn" data-xq="${esc(q.id)}">輸出這題（可複製文字）</button></div>${xboxHTML(q.id)}
-        ${srcLine(q)}</div>`:""}
-    </div></div>`;}
+function bankModal(rows){
+  const i=rows.findIndex(r=>r.s===state.bmodal);if(i<0){state.bmodal=null;return "";}
+  const r=rows[i],q=r.q,w=/^E\d+$/.test(r.n);
+  return `<div class="bmask" data-bclose="1"></div><div class="bmodal" role="dialog" aria-modal="true" aria-label="題目卡片">
+    <div class="bmhead"><span class="bno">${esc(paperName(r.pk))}・${w?"非選 "+esc(r.n.slice(1)):"第 "+esc(r.n)+" 題"}</span><span class="muted mono" style="font-size:.8rem">${i+1} / ${rows.length}</span><button class="ghost bmx" data-bclose="1" aria-label="關閉">✕ 關閉</button></div>
+    <section class="card bmcard">
+      ${headTags(q)}
+      <div class="stem">${esc(q.q)}</div>${qimgHTML(q)}
+      ${isW(q)?fcardHTML(q,true):`<div class="verdict ok" style="font-size:1.1rem">正解：${q.a.join("、")}</div><div class="opts">${OPT(q).map((_,k)=>optHTML(q,k,[],true)).join("")}</div>`}
+      ${q.n?`<div class="note">${q.n.startsWith("⚠️")?"":"註："}${esc(q.n)}</div>`:""}
+      ${conceptHTML(q)}
+      <div class="row"><button class="xbtn" data-xq="${esc(q.id)}">輸出這題（可複製文字）</button></div>${xboxHTML(q.id)}
+      ${srcLine(q)}
+    </section>
+    <div class="navbar bmnav"><button data-bgo="${i-1}" ${i?"":"disabled"}>← 上一題</button><button class="primary" data-bclose="1">回列表</button><button data-bgo="${i+1}" ${i<rows.length-1?"":"disabled"}>下一題 →</button></div>
+  </div>`;}
 function bankHTML(){
   const rows=bankRows(),ids=[...new Set(rows.map(r=>r.q.id))];
   const allOn=ids.length&&ids.every(id=>state.bsel.has(id)),n=state.bsel.size;
   const ychip=k=>{const c=QS.reduce((s,q)=>s+q.src.filter(x=>(YKEY[x.split("-")[0]]||x.split("-")[0])===k).length,0);return `<button data-byear="${k}" class="${state.byears.has(k)?"on":""}" aria-pressed="${state.byears.has(k)}">${YLABEL[k]}<span class="n">${c}</span></button>`;};
   const chips=YGROUPS.map(g=>`<span class="ygrp">${g.label}</span>${g.years.map(ychip).join("")}`).join("");
   const seg=(key,opts)=>opts.map(([k,t])=>`<button data-${key}="${k}" class="${state[key]===k?"on":""}">${t}</button>`).join("");
-  const shown=rows.slice(0,state.blimit);let lastP=null;
-  const cnt={};rows.forEach(r=>cnt[r.pk]=(cnt[r.pk]||0)+1);
-  const list=shown.map(r=>{let g="";if(r.pk!==lastP){lastP=r.pk;g=`<div class="bgrp">${esc(paperName(r.pk))}<span>${cnt[r.pk]} 題</span></div>`;}return g+bankItem(r);}).join("");
+  const cnt={};rows.forEach(r=>cnt[r.pk]=(cnt[r.pk]||0)+1);let lastP=null;
+  const trs=rows.map(r=>{const q=r.q,on=state.bsel.has(q.id),p=P[q.id],w=/^E\d+$/.test(r.n);let g="";
+    if(r.pk!==lastP){lastP=r.pk;g=`<tr class="grp"><td colspan="5">${esc(paperName(r.pk))}<span class="muted mono" style="font-size:.78rem;font-weight:500;margin-left:8px">${cnt[r.pk]} 題</span></td></tr>`;}
+    const others=q.src.filter(s=>s!==r.s);const stem=q.q;
+    return g+`<tr class="${on?"on":""}"><td><input type="checkbox" data-bsel="${esc(q.id)}" ${on?"checked":""} aria-label="勾選這題"></td>
+      <td class="src2"><b class="bnum">${w?"非選 "+esc(r.n.slice(1)):"第 "+esc(r.n)+" 題"}</b><span class="tag id bu2">${UNITS[q.u][0]}</span>${others.length?`<span class="balso">也考過：${others.map(srcShort).join("、")}</span>`:""}</td>
+      <td><button class="bstemb" data-bview="${esc(r.s)}">${isW(q)?`<span class="tag wq">非選</span> `:q.m?`<span class="tag multi">多選</span> `:""}${(q.img||[]).length?"🖼 ":""}${esc(stem)}</button></td>
+      <td class="fix"><button class="bstar ${FAV[q.id]?"on":""}" data-fav="${esc(q.id)}" aria-pressed="${!!FAV[q.id]}" aria-label="${FAV[q.id]?"取消收藏":"收藏"}">${FAV[q.id]?"★":"☆"}</button></td>
+      <td class="fix">${!p?`<span class="muted" title="還沒寫過">—</span>`:p.l===1?`<span class="okm" title="最近一次答對">✓</span>`:`<span class="nom" title="最近一次答錯">✗</span>`}</td></tr>`;}).join("");
   return `
   <div class="wtools bktools">
     <h2>📚 完整題庫 <span class="muted mono" style="font-size:.9rem">${ids.length} 題・已勾 ${n}</span></h2>
@@ -808,12 +811,15 @@ function bankHTML(){
     <div class="chips"><span class="muted" style="font-size:.88rem;align-self:center">顯示</span>${seg("bonly",[["all","全部"],["fav","只看收藏"],["wrong","只看錯過的"]])}</div>
     ${HASW?`<div class="chips"><span class="muted" style="font-size:.88rem;align-self:center">題型</span>${seg("bqt",[["all","全部"],["mc","只選擇題"],["w","只非選題"]])}</div>`:""}
     <div class="chips"><span class="muted" style="font-size:.88rem;align-self:center">排列</span>${seg("bsort",[["old","年份舊→新"],["new","年份新→舊"]])}<button data-bdup="1" class="${state.bdup?"":"on"}" aria-pressed="${!state.bdup}">重複題只列一次</button></div>
-    <small class="muted">同一年份依期中 → 期末 → 國考排列，卷內照題號。考過多次的題目預設在每份考卷都列出（標「也考過」），按「重複題只列一次」就只留在排最前面的那份。勾選、收藏是以題目為單位，同一題在不同考卷一起勾。</small>
+    <small class="muted">同一年份依期中 → 期末 → 國考排列，卷內照題號。點題幹會跳出題目卡片（正解、逐選項詳解、附圖、核心觀念），卡片裡可以直接上一題、下一題。考過多次的題目每份考卷都會列出，標「也考過」；勾選、收藏以題目為單位。</small>
   </section>
-  ${rows.length?`<label class="bselall"><input type="checkbox" id="bAll" ${allOn?"checked":""}>全選目前列出的 ${ids.length} 題</label>`:""}
-  <div class="blist">${list||`<p class="muted">沒有符合條件的題目。請至少選一份考卷，或換個搜尋字。</p>`}</div>
-  ${rows.length>state.blimit?`<button class="bmore" id="bMore">再顯示 100 筆（還有 ${rows.length-state.blimit} 筆）</button>`:""}
-  ${rows.length?`<div class="nextbar"><button class="ghost" id="bTop">回到頂端 ↑</button><button class="primary" data-home="1">回首頁</button></div>`:""}`;
+  <section class="card" style="padding:0;overflow:hidden">
+    ${rows.length?`<div class="tablebox"><table class="wtable btable"><colgroup><col class="c0"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup><thead><tr>
+      <th><input type="checkbox" id="bAll" ${allOn?"checked":""} aria-label="全選目前列出的題目"></th><th>題號・單元</th><th>題幹（點開看詳解）</th><th>收藏</th><th>最近作答</th>
+    </tr></thead><tbody>${trs}</tbody></table></div>`:`<p class="muted" style="padding:20px;margin:0">沒有符合條件的題目。請至少選一份考卷，或換個搜尋字。</p>`}
+  </section>
+  <small class="muted">「最近作答」：✓ 最近一次答對、✗ 最近一次答錯、— 還沒寫過。表頭方塊可全選目前列出的題目。</small>
+  ${state.bmodal?bankModal(rows):""}`;
 }
 function bankIds(){return [...new Set(bankRows().map(r=>r.q.id))];}
 function srcLine(q){return `<div class="src">出處：${q.src.map(srcOf).join("；")}</div>`;}
@@ -924,9 +930,11 @@ document.addEventListener("change",e=>{const t=e.target;
   if(t.id==="bAll"){const ids=bankIds();if(t.checked)ids.forEach(id=>state.bsel.add(id));else ids.forEach(id=>state.bsel.delete(id));render(true);}
   if(t.id==="wAll"){const ids=QS.filter(q=>wrongTimes(q.id)>0).map(q=>q.id);state.wsel=t.checked?new Set(ids):new Set();render(true);}});
 let bqTimer=null;
-document.addEventListener("input",e=>{const t=e.target;if(t.id!=="bSearch")return;state.bq=t.value;state.blimit=100;clearTimeout(bqTimer);
+document.addEventListener("input",e=>{const t=e.target;if(t.id!=="bSearch")return;state.bq=t.value;clearTimeout(bqTimer);
   bqTimer=setTimeout(()=>{const pos=t.selectionStart;render(true);const el=$("#bSearch");if(el){el.focus();try{el.setSelectionRange(pos,pos);}catch(x){}}},250);});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&state.screen==="bank"&&state.bmodal){state.bmodal=null;render(true);}});
 document.addEventListener("click",e=>{
+  if(e.target.classList&&e.target.classList.contains("bmask")){state.bmodal=null;render(true);return;}
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.all!==undefined){state.units=b.dataset.all==="1"?new Set(UIDS):new Set();savePrefs();render(true);return;}
   if(b.dataset.exsc){const ex=(D.exams||[]).find(x=>x.key===b.dataset.exsc);if(ex&&ex.units){state.units=new Set(ex.units.filter(u=>UIDS.includes(u)));savePrefs();render(true);}return;}
@@ -971,7 +979,7 @@ document.addEventListener("click",e=>{
   if(b.id==="cdReset"){const k=b.dataset.k;delete X[k];X.t=Date.now();state.cdedit=false;save();render(true);toast("已恢復課程大綱的日期");return;}
   if(b.dataset.rf){state.rf=b.dataset.rf;render(true);return;}
   if(b.id==="redoWrong"){startQuiz(state.list.filter(q=>state.ans[q.id]&&!isRight(q,state.ans[q.id])).map(q=>q.id));return;}
-  if(b.dataset.home){state.screen="setup";state.xopen={};render();return;}
+  if(b.dataset.home){state.screen="setup";state.bmodal=null;state.xopen={};render();return;}
   if(b.dataset.xq){const q=QS.find(x=>x.id===b.dataset.xq);copyText(exportText([q]),q.id);return;}
   if(b.dataset.xcopy){const k=b.dataset.xcopy;copyText(state.xopen[k],k);return;}
   if(b.dataset.xclose){delete state.xopen[b.dataset.xclose];render(true);return;}
@@ -983,16 +991,16 @@ document.addEventListener("click",e=>{
   if(b.id==="fPractice"){const ids=[...state.fsel];if(ids.length)startQuiz(ids);return;}
   if(b.id==="fRemove"){const batch=[...state.fsel].filter(id=>FAV[id]).map(id=>({id,t:FAV[id]}));if(!batch.length)return;batch.forEach(x=>delete FAV[x.id]);state.favUndo.push(batch);state.fsel=new Set();saveSoon();render(true);toast(`已取消收藏 ${batch.length} 題，可以按「↩ 復原」`,2600);return;}
   if(b.id==="favUndo"){const batch=state.favUndo.pop();if(!batch)return;batch.forEach(x=>{FAV[x.id]=x.t;state.fsel.add(x.id);});saveSoon();render(true);toast(`已復原 ${batch.length} 題收藏`);return;}
-  if(b.id==="openBank"){state.screen="bank";state.xopen={};state.blimit=100;render();return;}
-  if(b.dataset.byear){const y=b.dataset.byear;state.byears.has(y)?state.byears.delete(y):state.byears.add(y);state.blimit=100;render(true);return;}
-  if(b.dataset.byall!==undefined){state.byears=b.dataset.byall==="1"?new Set(YEARS):new Set();state.blimit=100;render(true);return;}
-  if(b.dataset.bonly){state.bonly=b.dataset.bonly;state.blimit=100;render(true);return;}
-  if(b.dataset.bqt){state.bqt=b.dataset.bqt;state.blimit=100;render(true);return;}
+  if(b.id==="openBank"){state.screen="bank";state.xopen={};render();return;}
+  if(b.dataset.byear){const y=b.dataset.byear;state.byears.has(y)?state.byears.delete(y):state.byears.add(y);render(true);return;}
+  if(b.dataset.byall!==undefined){state.byears=b.dataset.byall==="1"?new Set(YEARS):new Set();render(true);return;}
+  if(b.dataset.bonly){state.bonly=b.dataset.bonly;render(true);return;}
+  if(b.dataset.bqt){state.bqt=b.dataset.bqt;render(true);return;}
   if(b.dataset.bsort){state.bsort=b.dataset.bsort;render(true);return;}
   if(b.dataset.bdup){state.bdup=!state.bdup;render(true);return;}
-  if(b.dataset.bopen){const k=b.dataset.bopen;state.bopen.has(k)?state.bopen.delete(k):state.bopen.add(k);render(true);return;}
-  if(b.id==="bMore"){state.blimit+=100;render(true);return;}
-  if(b.id==="bTop"){window.scrollTo({top:0});return;}
+  if(b.dataset.bview){state.bmodal=b.dataset.bview;state.copen=new Set();render(true);const m=$(".bmodal");if(m)m.scrollTop=0;return;}
+  if(b.dataset.bgo!==undefined){const rows=bankRows(),r=rows[+b.dataset.bgo];if(r){state.bmodal=r.s;render(true);const m=$(".bmodal");if(m)m.scrollTop=0;}return;}
+  if(b.dataset.bclose){state.bmodal=null;render(true);return;}
   if(b.id==="bClear"){state.bsel=new Set();render(true);return;}
   if(b.id==="bExport"){const order=bankRows().map(r=>r.q.id),sel=[...state.bsel];const ids=[...new Set([...order.filter(id=>state.bsel.has(id)),...sel])];const qs=ids.map(id=>QS.find(q=>q.id===id)).filter(Boolean);if(qs.length)copyText(exportText(qs),"bk");return;}
   if(b.id==="bFav"){let k=0;const now=Date.now();state.bsel.forEach(id=>{if(!FAV[id]){FAV[id]=now;k++;}});saveSoon();render(true);toast(k?`已收藏 ${k} 題，可在收藏本查看`:"勾選的題目都已經收藏了",2200);return;}
