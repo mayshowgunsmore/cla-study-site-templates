@@ -741,8 +741,8 @@ function wrongsHTML(){
 function paperName(pk){return (YFULL[pk]||YLABEL[pk]||pk)+(PSUF[pk]||"");}
 function bankKey(r){
   const yk=r.yk,dg=((yk.match(/\d+/g)||[]).join("")+"0000").slice(0,4);
-  const lab=YLABEL[yk]||yk,gi=YGROUPS.findIndex(g=>g.years.includes(yk));
-  const rank=/期中/.test(lab)?0:/期末/.test(lab)?1:/國考/.test(lab)?9:2+Math.max(gi,0);
+  const lab=paperName(r.pk),gi=YGROUPS.findIndex(g=>g.years.includes(yk));
+  const rank=/期中|\d中/.test(lab)?0:/期末|\d末/.test(lab)?1:/國考/.test(lab)?9:2+Math.max(gi,0);
   const m=String(r.n).match(/^(E?)(\d+)(\D*)$/)||["","",0,""];
   return {y:+dg,rank,num:(m[1]?1e5:0)+(+m[2])*10+(m[3]?m[3].charCodeAt(0)-96:0)};}
 function bankRows(){
