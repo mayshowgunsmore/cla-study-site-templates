@@ -227,6 +227,40 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .verdict.half{color:var(--warn)}
 .dots button.half{background:var(--warn)}
 
+/* 完整題庫 */
+.wrap.s-bank{max-width:900px}
+.bankcard{padding:0;border:2px solid var(--label);overflow:hidden}
+.bankbtn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;border-radius:0;padding:18px 20px;background:var(--label-soft);color:var(--ink)}
+.bankbtn:hover{background:var(--label-soft);border-color:transparent}
+.bankbtn .bk-ic{font-size:2rem;line-height:1;flex:none}
+.bankbtn .bk-t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.bankbtn .bk-t b{font-family:var(--hand);font-size:1.3rem}
+.bankbtn .bk-t small{color:var(--muted);font-size:.85rem;line-height:1.5}
+.bankbtn .bk-n{font-family:var(--mono);font-weight:700;font-size:1.4rem;color:var(--hema);flex:none}
+.bfilter{display:flex;flex-direction:column;gap:10px}
+.bsearch{font:inherit;width:100%;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.bsearch:focus{outline:3px solid var(--label);outline-offset:1px}
+.bselall{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.bselall input,.brow .bchk{width:20px;height:20px;accent-color:var(--hema);cursor:pointer;flex:none}
+.bgrp{font-family:var(--hand);font-weight:700;font-size:1.1rem;color:var(--hema);padding:14px 4px 2px;display:flex;gap:10px;align-items:baseline;border-bottom:2px solid var(--hema-soft)}
+.bgrp span{font-family:var(--mono);font-size:.8rem;color:var(--muted);font-weight:500}
+.blist{display:flex;flex-direction:column;gap:10px}
+.brow{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.brow.on{border-color:var(--hema);background:var(--hema-soft)}
+.brow .bchk{margin-top:3px}
+.bbody{display:flex;flex-direction:column;gap:8px;min-width:0}
+.bmeta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.bmeta .bno{font-family:var(--mono);font-weight:700;font-size:.85rem;color:var(--eosin)}
+.bstem{font-weight:500;white-space:pre-line;line-height:1.65}
+.bopts{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:.93rem}
+.bopts li{display:grid;grid-template-columns:2.2em 1fr;gap:2px}
+.bopts li b{font-family:var(--mono);color:var(--muted)}
+.bshow{align-self:flex-start;padding:5px 14px;font-size:.85rem;border-color:var(--hema);color:var(--hema);font-weight:700}
+.bshow[aria-expanded="true"]{background:var(--hema-soft)}
+.bans{display:flex;flex-direction:column;gap:10px;border-top:1px dashed var(--line);padding-top:10px}
+.bmore{align-self:center}
+.bktools{gap:6px}.bktools .row{gap:6px}.bktools button{padding:6px 12px;font-size:.85rem}.bktools button:disabled{opacity:.45;cursor:not-allowed}.bktools button.primary{padding:6px 14px}
+@media (max-width:560px){.brow{padding:10px;gap:4px 8px}.bankbtn{padding:16px}.bktools h2{font-size:1.1rem}.bktools button{padding:5px 10px;font-size:.8rem}}
 .qimg{margin:10px 0 4px;text-align:center}.qimg img{max-width:100%;max-height:340px;border-radius:10px;border:1px solid var(--line);background:#fff}
 </style>
 </head><body>
@@ -389,7 +423,7 @@ async function save(){
 function saveSoon(){lsWrite();clearTimeout(saveTimer);saveTimer=setTimeout(save,1200);}
 
 /* ---------- state ---------- */
-let state={screen:"setup",years:new Set(YEARS),units:new Set(UIDS),count:20,order:"new",list:[],i:0,ans:{},rf:"all",copen:new Set(),locked:false,recorded:new Set(),xopen:{},wsel:new Set(),fsel:new Set(),fsort:"unit",favUndo:[],resetUndo:null,qtime:{},wsort:"unit",cramFor:null,cdedit:false,qt0:null,qacc:0,info:{},qt:"all",flip:new Set(),kwopen:new Set()};
+let state={screen:"setup",years:new Set(YEARS),units:new Set(UIDS),count:20,order:"new",list:[],i:0,ans:{},rf:"all",copen:new Set(),locked:false,recorded:new Set(),xopen:{},wsel:new Set(),fsel:new Set(),fsort:"unit",favUndo:[],resetUndo:null,qtime:{},wsort:"unit",cramFor:null,cdedit:false,qt0:null,qacc:0,info:{},qt:"all",flip:new Set(),kwopen:new Set(),byears:new Set(YEARS),bsort:"old",bdup:true,bonly:"all",bqt:"all",bq:"",bsel:new Set(),bopen:new Set(),blimit:100};
 (function(){const s=lsGet(PREF_KEY);if(s){if(s.units)state.units=new Set(s.units);if(s.years){state.years=new Set(s.years.filter(y=>YEARS.includes(y)));const known=s.ky||YEARS;YEARS.filter(y=>!known.includes(y)).forEach(y=>state.years.add(y));}if(s.count)state.count=s.count;if(s.order)state.order=s.order;if(s.cramFor)state.cramFor=s.cramFor;if(s.qt)state.qt=s.qt;}})();
 function savePrefs(){lsSet(PREF_KEY,{ky:YEARS,units:[...state.units],years:[...state.years],count:state.count,order:state.order,cramFor:state.cramFor,qt:state.qt});}
 
@@ -434,7 +468,7 @@ function toast(msg,ms,cls){const t=$("#toast");t.textContent=msg;t.className="to
 function render(keep){
   const y=window.scrollY;
   const app=$("#app");
-  app.className="wrap s-"+state.screen;app.innerHTML=state.screen==="setup"?setupHTML():state.screen==="quiz"?quizHTML():state.screen==="wrongs"?wrongsHTML():state.screen==="favs"?favsHTML():reviewHTML();
+  app.className="wrap s-"+state.screen;app.innerHTML=state.screen==="setup"?setupHTML():state.screen==="quiz"?quizHTML():state.screen==="wrongs"?wrongsHTML():state.screen==="favs"?favsHTML():state.screen==="bank"?bankHTML():reviewHTML();
   window.scrollTo({top:keep?y:0});
 }
 function unitStats(u){const qs=QS.filter(q=>q.u===u&&inYears(q)&&inQT(q));const seen=qs.filter(q=>P[q.id]);return {total:qs.length,seen:seen.length,wrong:seen.filter(q=>P[q.id].l===0).length};}
@@ -569,6 +603,9 @@ function setupHTML(){
         <div id="resetBox"></div>
         ${state.resetUndo?`<div class="undo"><span>剛才清除了 ${state.resetUndo.n} 題的作答紀錄</span><button id="resetUndo">↩ 復原紀錄</button></div>`:""}
       </section>
+      <section class="card bankcard">
+        <button class="bankbtn" id="openBank"><span class="bk-ic" aria-hidden="true">📚</span><span class="bk-t"><b>完整題庫</b><small>列出全部題目，照年份、期中期末、國考與題號排列；可篩選考卷、搜尋、收藏、勾選輸出</small></span><span class="bk-n">${total}</span></button>
+      </section>
     </div>
   </div>`;
 }
@@ -702,6 +739,83 @@ function wrongsHTML(){
   </section>
   <small class="muted">「錯的次數」是累計答錯幾次；「後來答對」看最近一次作答：最近一次答對打 ✓，還沒答對或又答錯打 ✗。答錯過的題目會一直留在錯題本，清除作答紀錄後歸零。勾選後按「輸出勾選的錯題」會複製成文字。</small>`;
 }
+/* ---------- 完整題庫：照考卷與題號列出全部題目 ---------- */
+function paperName(pk){return (YFULL[pk]||YLABEL[pk]||pk)+(PSUF[pk]||"");}
+function bankKey(r){
+  const yk=r.yk,dg=((yk.match(/\d+/g)||[]).join("")+"0000").slice(0,4);
+  const lab=YLABEL[yk]||yk,gi=YGROUPS.findIndex(g=>g.years.includes(yk));
+  const rank=/期中/.test(lab)?0:/期末/.test(lab)?1:/國考/.test(lab)?9:2+Math.max(gi,0);
+  const m=String(r.n).match(/^(E?)(\d+)(\D*)$/)||["","",0,""];
+  return {y:+dg,rank,num:(m[1]?1e5:0)+(+m[2])*10+(m[3]?m[3].charCodeAt(0)-96:0)};}
+function bankRows(){
+  const kw=state.bq.trim().toLowerCase();
+  let rows=[];
+  for(const q of QS){
+    if(state.bqt!=="all"&&(state.bqt==="w")!==isW(q))continue;
+    if(state.bonly==="fav"&&!FAV[q.id])continue;
+    if(state.bonly==="wrong"&&!(wrongTimes(q.id)>0))continue;
+    if(kw){const hay=(q.q+" "+OPT(q).join(" ")+" "+(q.ans||[]).join(" ")+" "+q.src.map(srcOf).join(" ")).toLowerCase();if(!hay.includes(kw))continue;}
+    for(const s of q.src){const i=s.indexOf("-"),pk=s.slice(0,i),n=s.slice(i+1),yk=YKEY[pk]||pk;
+      if(!state.byears.has(yk))continue;const r={q,s,pk,yk,n};r.k=bankKey(r);rows.push(r);}
+  }
+  const dir=state.bsort==="new"?-1:1;
+  rows.sort((a,b)=>dir*(a.k.y-b.k.y)||a.k.rank-b.k.rank||(a.pk<b.pk?-1:a.pk>b.pk?1:0)||a.k.num-b.k.num);
+  if(!state.bdup){const seen=new Set();rows=rows.filter(r=>!seen.has(r.q.id)&&seen.add(r.q.id));}
+  return rows;}
+function bankItem(r){
+  const q=r.q,on=state.bsel.has(q.id),open=state.bopen.has(r.s),w=/^E\d+$/.test(r.n);
+  const others=q.src.filter(s=>s!==r.s);
+  return `<div class="brow ${on?"on":""}"><input type="checkbox" class="bchk" data-bsel="${esc(q.id)}" ${on?"checked":""} aria-label="勾選這題">
+    <div class="bbody">
+      <div class="bmeta"><span class="bno">${esc(paperName(r.pk))}・${w?"非選 "+esc(r.n.slice(1)):"第 "+esc(r.n)+" 題"}</span><span class="tag id">${UNITS[q.u][0]}</span><span class="tag un">${esc(UNITS[q.u][1])}</span>${isW(q)?`<span class="tag wq">非選題</span>`:q.m?`<span class="tag multi">多選</span>`:""}${(q.img||[]).length?`<span class="tag">🖼 附圖</span>`:""}${others.length?`<span class="tag yr" title="${esc(others.map(srcOf).join("；"))}">也考過：${others.map(srcShort).join("、")}</span>`:""}${P[q.id]?(P[q.id].l===1?`<span class="tag ok">最近答對</span>`:`<span class="tag multi">最近答錯</span>`):""}
+        <button class="star ${FAV[q.id]?"on":""}" data-fav="${esc(q.id)}" aria-pressed="${!!FAV[q.id]}">${FAV[q.id]?"★ 已收藏":"☆ 收藏"}</button></div>
+      <div class="bstem">${esc(q.q)}</div>
+      ${open?qimgHTML(q):""}
+      ${!isW(q)&&!open?`<ol class="bopts">${OPT(q).map((o,k)=>`<li><b>(${LET[k]})</b><span>${esc(o)}</span></li>`).join("")}</ol>`:""}
+      <button class="bshow" data-bopen="${esc(r.s)}" aria-expanded="${open}">${open?"收起答案 ▴":isW(q)?"看參考答案與附圖 ▾":(q.img||[]).length?"看附圖、答案與詳解 ▾":"看答案與詳解 ▾"}</button>
+      ${open?`<div class="bans">${isW(q)?fcardHTML(q,true):`<div class="verdict ok" style="font-size:1.1rem">正解：${q.a.join("、")}</div><div class="opts">${OPT(q).map((_,k)=>optHTML(q,k,[],true)).join("")}</div>`}
+        ${q.n?`<div class="note">${q.n.startsWith("⚠️")?"":"註："}${esc(q.n)}</div>`:""}
+        ${conceptHTML(q)}
+        <div class="row"><button class="xbtn" data-xq="${esc(q.id)}">輸出這題（可複製文字）</button></div>${xboxHTML(q.id)}
+        ${srcLine(q)}</div>`:""}
+    </div></div>`;}
+function bankHTML(){
+  const rows=bankRows(),ids=[...new Set(rows.map(r=>r.q.id))];
+  const allOn=ids.length&&ids.every(id=>state.bsel.has(id)),n=state.bsel.size;
+  const ychip=k=>{const c=QS.reduce((s,q)=>s+q.src.filter(x=>(YKEY[x.split("-")[0]]||x.split("-")[0])===k).length,0);return `<button data-byear="${k}" class="${state.byears.has(k)?"on":""}" aria-pressed="${state.byears.has(k)}">${YLABEL[k]}<span class="n">${c}</span></button>`;};
+  const chips=YGROUPS.map(g=>`<span class="ygrp">${g.label}</span>${g.years.map(ychip).join("")}`).join("");
+  const seg=(key,opts)=>opts.map(([k,t])=>`<button data-${key}="${k}" class="${state[key]===k?"on":""}">${t}</button>`).join("");
+  const shown=rows.slice(0,state.blimit);let lastP=null;
+  const cnt={};rows.forEach(r=>cnt[r.pk]=(cnt[r.pk]||0)+1);
+  const list=shown.map(r=>{let g="";if(r.pk!==lastP){lastP=r.pk;g=`<div class="bgrp">${esc(paperName(r.pk))}<span>${cnt[r.pk]} 題</span></div>`;}return g+bankItem(r);}).join("");
+  return `
+  <div class="wtools bktools">
+    <h2>📚 完整題庫 <span class="muted mono" style="font-size:.9rem">${ids.length} 題・已勾 ${n}</span></h2>
+    <div class="row">
+      <button id="bExport" class="xbtn" ${n?"":"disabled"}>輸出勾選（${n}）</button>
+      <button id="bFav" ${n?"":"disabled"}>☆ 收藏勾選</button>
+      <button id="bUnfav" ${n?"":"disabled"}>取消收藏勾選</button>
+      <button id="bPractice" ${n?"":"disabled"}>練習勾選</button>
+      ${n?`<button class="ghost" id="bClear">清除勾選</button>`:""}
+      <button class="primary" data-home="1">回首頁</button>
+    </div>
+  </div>
+  ${xboxHTML("bk")}
+  <section class="card bfilter">
+    <div class="spread"><h2>篩選考卷</h2><div class="row"><button class="ghost" data-byall="1">全選</button><button class="ghost" data-byall="0">全不選</button></div></div>
+    <div class="chips">${chips}</div>
+    <input type="search" class="bsearch" id="bSearch" placeholder="搜尋題幹、選項、出處…" value="${esc(state.bq)}" aria-label="搜尋題目">
+    <div class="chips"><span class="muted" style="font-size:.88rem;align-self:center">顯示</span>${seg("bonly",[["all","全部"],["fav","只看收藏"],["wrong","只看錯過的"]])}</div>
+    ${HASW?`<div class="chips"><span class="muted" style="font-size:.88rem;align-self:center">題型</span>${seg("bqt",[["all","全部"],["mc","只選擇題"],["w","只非選題"]])}</div>`:""}
+    <div class="chips"><span class="muted" style="font-size:.88rem;align-self:center">排列</span>${seg("bsort",[["old","年份舊→新"],["new","年份新→舊"]])}<button data-bdup="1" class="${state.bdup?"":"on"}" aria-pressed="${!state.bdup}">重複題只列一次</button></div>
+    <small class="muted">同一年份依期中 → 期末 → 國考排列，卷內照題號。考過多次的題目預設在每份考卷都列出（標「也考過」），按「重複題只列一次」就只留在排最前面的那份。勾選、收藏是以題目為單位，同一題在不同考卷一起勾。</small>
+  </section>
+  ${rows.length?`<label class="bselall"><input type="checkbox" id="bAll" ${allOn?"checked":""}>全選目前列出的 ${ids.length} 題</label>`:""}
+  <div class="blist">${list||`<p class="muted">沒有符合條件的題目。請至少選一份考卷，或換個搜尋字。</p>`}</div>
+  ${rows.length>state.blimit?`<button class="bmore" id="bMore">再顯示 100 筆（還有 ${rows.length-state.blimit} 筆）</button>`:""}
+  ${rows.length?`<div class="nextbar"><button class="ghost" id="bTop">回到頂端 ↑</button><button class="primary" data-home="1">回首頁</button></div>`:""}`;
+}
+function bankIds(){return [...new Set(bankRows().map(r=>r.q.id))];}
 function srcLine(q){return `<div class="src">出處：${q.src.map(srcOf).join("；")}</div>`;}
 function quizHTML(){
   const q=state.list[state.i],picked=state.ans[q.id]||[],n=state.list.length,locked=state.locked;
@@ -806,7 +920,12 @@ document.addEventListener("change",e=>{const t=e.target;
   if(t.dataset.wsel){const id=t.dataset.wsel;t.checked?state.wsel.add(id):state.wsel.delete(id);render(true);}
   if(t.dataset.fsel){const id=t.dataset.fsel;t.checked?state.fsel.add(id):state.fsel.delete(id);render(true);}
   if(t.id==="fAll"){const ids=QS.filter(q=>FAV[q.id]).map(q=>q.id);state.fsel=t.checked?new Set(ids):new Set();render(true);}
+  if(t.dataset.bsel){const id=t.dataset.bsel;t.checked?state.bsel.add(id):state.bsel.delete(id);render(true);}
+  if(t.id==="bAll"){const ids=bankIds();if(t.checked)ids.forEach(id=>state.bsel.add(id));else ids.forEach(id=>state.bsel.delete(id));render(true);}
   if(t.id==="wAll"){const ids=QS.filter(q=>wrongTimes(q.id)>0).map(q=>q.id);state.wsel=t.checked?new Set(ids):new Set();render(true);}});
+let bqTimer=null;
+document.addEventListener("input",e=>{const t=e.target;if(t.id!=="bSearch")return;state.bq=t.value;state.blimit=100;clearTimeout(bqTimer);
+  bqTimer=setTimeout(()=>{const pos=t.selectionStart;render(true);const el=$("#bSearch");if(el){el.focus();try{el.setSelectionRange(pos,pos);}catch(x){}}},250);});
 document.addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.all!==undefined){state.units=b.dataset.all==="1"?new Set(UIDS):new Set();savePrefs();render(true);return;}
@@ -864,6 +983,21 @@ document.addEventListener("click",e=>{
   if(b.id==="fPractice"){const ids=[...state.fsel];if(ids.length)startQuiz(ids);return;}
   if(b.id==="fRemove"){const batch=[...state.fsel].filter(id=>FAV[id]).map(id=>({id,t:FAV[id]}));if(!batch.length)return;batch.forEach(x=>delete FAV[x.id]);state.favUndo.push(batch);state.fsel=new Set();saveSoon();render(true);toast(`已取消收藏 ${batch.length} 題，可以按「↩ 復原」`,2600);return;}
   if(b.id==="favUndo"){const batch=state.favUndo.pop();if(!batch)return;batch.forEach(x=>{FAV[x.id]=x.t;state.fsel.add(x.id);});saveSoon();render(true);toast(`已復原 ${batch.length} 題收藏`);return;}
+  if(b.id==="openBank"){state.screen="bank";state.xopen={};state.blimit=100;render();return;}
+  if(b.dataset.byear){const y=b.dataset.byear;state.byears.has(y)?state.byears.delete(y):state.byears.add(y);state.blimit=100;render(true);return;}
+  if(b.dataset.byall!==undefined){state.byears=b.dataset.byall==="1"?new Set(YEARS):new Set();state.blimit=100;render(true);return;}
+  if(b.dataset.bonly){state.bonly=b.dataset.bonly;state.blimit=100;render(true);return;}
+  if(b.dataset.bqt){state.bqt=b.dataset.bqt;state.blimit=100;render(true);return;}
+  if(b.dataset.bsort){state.bsort=b.dataset.bsort;render(true);return;}
+  if(b.dataset.bdup){state.bdup=!state.bdup;render(true);return;}
+  if(b.dataset.bopen){const k=b.dataset.bopen;state.bopen.has(k)?state.bopen.delete(k):state.bopen.add(k);render(true);return;}
+  if(b.id==="bMore"){state.blimit+=100;render(true);return;}
+  if(b.id==="bTop"){window.scrollTo({top:0});return;}
+  if(b.id==="bClear"){state.bsel=new Set();render(true);return;}
+  if(b.id==="bExport"){const order=bankRows().map(r=>r.q.id),sel=[...state.bsel];const ids=[...new Set([...order.filter(id=>state.bsel.has(id)),...sel])];const qs=ids.map(id=>QS.find(q=>q.id===id)).filter(Boolean);if(qs.length)copyText(exportText(qs),"bk");return;}
+  if(b.id==="bFav"){let k=0;const now=Date.now();state.bsel.forEach(id=>{if(!FAV[id]){FAV[id]=now;k++;}});saveSoon();render(true);toast(k?`已收藏 ${k} 題，可在收藏本查看`:"勾選的題目都已經收藏了",2200);return;}
+  if(b.id==="bUnfav"){const batch=[...state.bsel].filter(id=>FAV[id]).map(id=>({id,t:FAV[id]}));if(!batch.length){toast("勾選的題目都沒有收藏");return;}batch.forEach(x=>delete FAV[x.id]);state.favUndo.push(batch);saveSoon();render(true);toast(`已取消收藏 ${batch.length} 題（收藏本可按「↩ 復原」）`,2600);return;}
+  if(b.id==="bPractice"){const ids=[...state.bsel];if(ids.length)startQuiz(ids);return;}
   if(b.id==="openWrongs"){state.screen="wrongs";state.xopen={};render();return;}
   if(b.id==="wExport"){const qs=QS.filter(q=>state.wsel.has(q.id)).sort((a,b)=>UORDER.indexOf(a.u)-UORDER.indexOf(b.u));if(qs.length)copyText(exportText(qs),"wb");return;}
   if(b.id==="wPractice"){const ids=[...state.wsel];if(ids.length)startQuiz(ids);return;}
