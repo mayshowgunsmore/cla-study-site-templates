@@ -21,7 +21,7 @@ for c in D['chapters']:
         SECS[s.get('id')]=s
         if '{{' in s.get('html',''): E.append(f'節 {s["id"]} 內文殘留 {{{{')
         for t in s.get('tags',[]):
-            if t not in ('must','past','nat','imp'): W.append(f'節 {s["id"]} 標籤 {t} 不是 must/past/nat/imp')
+            if t not in ('must','freq','past','nat','imp') and t not in (D.get('tagDefs') or {}): W.append(f'節 {s["id"]} 標籤 {t} 不是 must/freq/past/nat/imp 或 tagDefs 定義的標籤')
 figs=D.get('figCaptions',{}); fsz=D.get('figSize',{}); mn=D.get('mnemonics',{}); dg=D.get('diagrams',{}); wg=D.get('widgets',{})
 for k in figs:
     if k not in fsz: E.append(f'原圖 {k} 沒有 figSize')
@@ -60,7 +60,7 @@ for nm in ('key','fix','extra','hot','num'):
     for x in D.get(nm,[]):
         if x.get('sec') and x['sec'] not in SECS: E.append(f'{nm} 的節 {x["sec"]} 不存在')
 for x in D.get('key',[]):
-    if x.get('t') not in ('must','imp','nat','teach','skip'): E.append(f'必考標記類型 {x.get("t")} 不對')
+    if x.get('t') not in ('must','freq','imp','nat','teach','skip'): E.append(f'必考標記類型 {x.get("t")} 不對')
 nq=0;ns=0
 for sid,qs in D.get('quiz',{}).items():
     if sid not in SECS: E.append(f'測驗的節 {sid} 不存在'); continue

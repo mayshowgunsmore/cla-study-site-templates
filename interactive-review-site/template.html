@@ -163,6 +163,7 @@ h2.h::before{content:"";width:14px;height:14px;border-radius:50%;background:var(
 .chip.must{background:var(--red-soft);color:var(--red)}
 .chip.nat{background:var(--blue-soft);color:var(--blue)}
 .chip.past{background:var(--hi-soft);color:var(--hi-ink)}
+.chip.freq{background:var(--red-soft);color:var(--red);box-shadow:inset 0 0 0 1.5px var(--red)}
 .chip.imp{background:var(--green-soft);color:var(--green)}
 .chip.teach{background:var(--surface2);color:var(--muted)}
 .chip.skip{background:var(--surface2);color:var(--muted)}
@@ -486,8 +487,8 @@ const SECS={};CH.forEach(c=>c.secs.forEach(s=>{s.ch=c;SECS[s.id]=s}));
 const ALLSECS=Object.keys(SECS);
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 function mark(h){return String(h).replace(/==([^=]+)==/g,'<span class="k">$1</span>')}
-const LBL=Object.assign({must:'教材標必考',keySub:'只收教材明寫的字樣，引用原文並附頁碼；不含本站自行判斷的重點',sprintSub:'考古題重複出現的考點、教材疑誤、教材以外但考過的內容',mnSub:'全部為本站自編，不是教材或老師提供；開啟遮重點可以蓋住解答來默背'},SD.labels||{});
-const TAGDEF=SD.tagDefs||{};const TAGN=Object.assign({must:LBL.must,past:'考過',nat:'國考',imp:'很重要',teach:'老師提到',skip:'可先略過'},Object.fromEntries(Object.entries(TAGDEF).map(([k,v])=>[k,(v&&v.name)||k])));
+const LBL=Object.assign({must:'教材標必考',keySub:'只收教材明寫的字樣，引用原文並附頁碼；不含本站自行判斷的重點',sprintSub:'考古題重複出現的考點、教材疑誤、教材以外但考過的內容',mnSub:'全部為本站自編，不是教材或老師提供；開啟遮重點可以蓋住解答來默背',freq:'高頻必考',freqTip:'依考古題重複出現的次數判定（同一考點出現在 3 份以上考卷），只代表常考，不等於教材或老師標的必考。'},SD.labels||{});
+const TAGDEF=SD.tagDefs||{};const TAGN=Object.assign({must:LBL.must,freq:LBL.freq,past:'考過',nat:'國考',imp:'很重要',teach:'老師提到',skip:'可先略過'},Object.fromEntries(Object.entries(TAGDEF).map(([k,v])=>[k,(v&&v.name)||k])));
 const QLAB=['A','B','C','D','E','F'];
 function icon(p){return `<svg viewBox="0 0 24 24">${p}</svg>`}
 const I={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',key:'<path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/>',
@@ -684,6 +685,7 @@ function pageHome(){
   ${SD.site.foot?`<p class="foot">${SD.site.foot}</p>`:""}`;
 }
 
+const HASFREQ=CH.some(c=>c.secs.some(s=>(s.tags||[]).includes('freq')));
 function pageCh(id){
   const c=CH.find(x=>x.id===id);if(!c)return '<p class="empty">找不到這一章</p>';
   const f=ST.filter||'all';
@@ -694,6 +696,7 @@ function pageCh(id){
     <div class="tools">
       <button class="btn${f==='all'?' on':''}" data-filter="all">全部</button>
       <button class="btn${f==='must'?' on':''}" data-filter="must">${esc(LBL.must)}</button>
+      ${HASFREQ?`<button class="btn${f==='freq'?' on':''}" data-filter="freq">${esc(LBL.freq)}</button>`:''}
       <button class="btn${f==='past'?' on':''}" data-filter="past">考過</button>${Object.entries(TAGDEF).filter(([k,v])=>v&&v.filter).map(([k,v])=>`<button class="btn${f===k?' on':''}" data-filter="${esc(k)}">${esc(v.name||k)}</button>`).join('')}
       <button class="btn" id="openall">全部展開</button><button class="btn" id="closeall">全部收合</button></div>
     ${secs.map((s,i)=>secHTML(s,i===0)).join('')}
@@ -735,15 +738,17 @@ function fillX(card){
 function pageKey(){
   const tf=ST.keyType||'all',cf=ST.keyCh||'all';
   const list=KEY.filter(k=>(tf==='all'||k.t===tf)&&(cf==='all'||SECS[k.sec].ch.id===cf));
-  const T=[['all','全部'],['must','必考必背'],['imp','很重要'],['nat','國考'],['teach','老師提到'],['skip','可先略過']];
+  const KF=KEY.some(k=>k.t==='freq');
+  const T=[['all','全部'],['must','必考必背']].concat(KF?[['freq',LBL.freq]]:[]).concat([['imp','很重要'],['nat','國考'],['teach','老師提到'],['skip','可先略過']]);
   return `<div class="ch-head"><h1>必考標記</h1><div class="sub">${esc(LBL.keySub)}</div></div>
   <div class="tools">${T.map(([k,n])=>`<button class="btn${tf===k?' on':''}" data-kt="${k}">${n}</button>`).join('')}</div>
   <div class="tools">${[['all','全部章']].concat(CH.map(c=>[c.id,c.no])).map(([k,n])=>`<button class="btn${cf===k?' on':''}" data-kc="${k}">${n}</button>`).join('')}</div>
   ${tf==='skip'||tf==='all'?(SD.keyTip||''):''}
+  ${KF&&(tf==='freq'||tf==='all')&&LBL.freqTip?`<div class="note tip"><b>${esc(LBL.freq)}怎麼判定</b>${esc(LBL.freqTip)}</div>`:''}
   ${list.length?list.map(k=>`<details class="card xcard" data-xsec="${k.sec}" style="padding:13px 15px"><summary>
     <div class="row" style="gap:6px;margin-bottom:6px">${chip(k.t==='skip'?'skip':k.t)}<span class="chip page">${esc(k.p)}</span>
       ${xLab(k.sec)}</div>
-    <div style="font-size:.95rem;line-height:1.7">「${esc(k.q)}」</div>${xHint()}</summary><div class="xbody"></div></details>`).join(''):'<p class="empty">這個條件下沒有標記</p>'}`;
+    <div style="font-size:.95rem;line-height:1.7">${k.t==='freq'?esc(k.q):'「'+esc(k.q)+'」'}</div>${xHint()}</summary><div class="xbody"></div></details>`).join(''):'<p class="empty">這個條件下沒有標記</p>'}`;
 }
 
 function pageSprint(){
