@@ -340,6 +340,7 @@ body.imgonly .inst h3{font-size:1rem}
 .copt .cexp{display:block;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:.86rem;color:var(--ink)}
 body.nodrill .star,body.nodrill .starb{display:none}
 body.noatlas .jump[data-act="jump"]{display:none}
+.pgrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.pgbox{margin-top:12px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px}.pgbox p{margin:0 0 8px}.pgmsg{margin:10px 0 0;color:var(--good)}.pgmsg.bad{color:var(--bad)}.pgmsg button{margin-left:6px}
 </style>
 </head><body>
 <script id="site-data" type="application/json">__DATA__</script>
@@ -442,6 +443,78 @@ async function cloudInit(){try{if(!SD.site.dbDoc||!window.claude||!window.claude
   ["done","star","quiz","known","rec"].forEach(k=>{S[k]=Object.assign({},r[k]||{},S[k]||{});});
   if(r.tavg&&(!S.tavg||(r.tavg.n||0)>(S.tavg.n||0)))S.tavg=r.tavg;if(!S.exam&&r.exam)S.exam=r.exam;
   try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}if(!(route==="drill"&&D.run))render();}catch(e){}}
+const PG_SITE=KEY,PG_BTN={p:"pill primary",s:"pill"};
+const PG_MERGE="兩邊的紀錄都留下，同一張圖取較新的那次作答（記憶曲線排程跟著它），完成標記與收藏兩邊加起來；網站上沒設考試日期時才用檔案裡的。";
+function progGet(){const o=pgClone(S);delete o.mask;return o;}
+function progCount(d){d=d||{};const c=o=>Object.keys(o||{}).length;return `${c(d.rec)} 筆練習紀錄、${c(d.star)} 個收藏`;}
+function progApply(d,mode){d=pgClone(d);const mask=S.mask;
+  if(mode==="replace"){S=Object.assign({done:{},star:{},quiz:{},known:{},rec:{},tavg:{n:0,s:0},exam:""},d,{mask});}
+  else{["done","star","quiz","known"].forEach(k=>{S[k]=Object.assign({},d[k]||{},S[k]||{});});
+    const r=Object.assign({},S.rec||{});for(const k in d.rec||{}){const a=r[k],b=d.rec[k];if(!a||((b&&b.t)||0)>((a&&a.t)||0))r[k]=b;}S.rec=r;
+    if(d.tavg&&(d.tavg.n||0)>((S.tavg&&S.tavg.n)||0))S.tavg=d.tavg;if(!S.exam&&d.exam)S.exam=d.exam;}
+  ["done","star","quiz","known","rec"].forEach(k=>{if(!S[k]||typeof S[k]!=="object")S[k]={};});if(!S.tavg)S.tavg={n:0,s:0};}
+function progAfter(){save();render();}
+
+/* ---------- 進度備份：把進度下載成 .json 檔，上傳時選「合併」或「取代」，可復原 ---------- */
+const PG={pend:null,undo:null,msg:"",err:false,canUndo:false};
+const pgClone=o=>JSON.parse(JSON.stringify(o||{}));
+const pgPad=n=>String(n).padStart(2,"0");
+function pgStamp(d){return `${d.getFullYear()}${pgPad(d.getMonth()+1)}${pgPad(d.getDate())}-${pgPad(d.getHours())}${pgPad(d.getMinutes())}`;}
+function pgDate(s){const d=new Date(s);if(isNaN(d))return "時間不明";return `${d.getFullYear()}/${pgPad(d.getMonth()+1)}/${pgPad(d.getDate())} ${pgPad(d.getHours())}:${pgPad(d.getMinutes())}`;}
+function pgTitle(){return String(document.title||"網站").replace(/（離線版）$/,"");}
+function pgB(act,label,primary){return `<button type="button" class="${primary?PG_BTN.p:PG_BTN.s}" data-prog="${act}">${label}</button>`;}
+function progBoxInner(){
+  let h=`<p>把這個網站的作答紀錄、收藏與考試日期存成一個小檔案（.json）。換手機或電腦、在線上版與離線版之間搬進度、或想留一份備份時用：在原本的地方按「下載進度」，再到新的地方打開同一個網站，按「上傳進度」選這個檔案。${OFFLINE?"離線版的進度只存在這台裝置，要帶回線上版就從這裡下載。":"登入時進度本來就會跟著帳號同步，這裡是另外留一份。"}只能上傳這個網站下載的進度檔。</p>
+  <div class="pgrow">${pgB("dl","下載進度",1)}${pgB("pick","上傳進度",1)}<input type="file" id="pgFile" accept=".json,application/json" hidden></div>`;
+  if(PG.pend){const f=PG.pend;
+    h+=`<div class="pgbox"><p>檔案：<b>${esc(f.title||"")}</b>，${pgDate(f.at)} 下載${f.offline?"（離線版）":""}，裡面有 ${progCount(f.data)}。<br>目前網站上有 ${progCount(progGet())}。</p>
+    <p><b>合併</b>：${PG_MERGE}<br><b>取代</b>：網站上的進度整個換成檔案裡的。兩種都可以按「復原」改回來。</p>
+    <div class="pgrow">${pgB("merge","合併",1)}${pgB("replace","取代")}${pgB("cancel","取消")}</div></div>`;}
+  if(PG.msg)h+=`<p class="pgmsg${PG.err?" bad":""}">${PG.msg}${PG.canUndo&&PG.undo?" "+pgB("undo","↩ 復原"):""}</p>`;
+  return h;}
+function progRefresh(){const b=document.getElementById("pgBody");if(b)b.innerHTML=progBoxInner();}
+function progReopen(){const d=document.getElementById("pgDet");if(d)d.open=true;progRefresh();}
+function pgSay(msg,err,canUndo){PG.msg=msg;PG.err=!!err;PG.canUndo=!!canUndo;}
+async function progDownload(){
+  const data=progGet();
+  const pack={kind:"study-site-progress",v:1,site:PG_SITE,title:pgTitle(),at:new Date().toISOString(),offline:!!OFFLINE,data};
+  const txt=JSON.stringify(pack);
+  const fn=pgTitle().replace(/[\\/:*?"<>|]/g,"_")+"_進度_"+pgStamp(new Date())+".json";
+  let dl=null;try{dl=(window.claude&&window.claude.use)?await window.claude.use("downloads"):null;}catch(e){dl=null;}
+  try{
+    if(dl)await dl.save({filename:fn,data:txt});
+    else{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);}
+    pgSay(`已下載「${esc(fn)}」（${progCount(data)}）`);
+  }catch(e){if(e&&e.code==="declined")pgSay("已取消下載");else pgSay("無法下載，請稍後再試",1);}
+  progRefresh();}
+function progRead(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{let p=null;try{p=JSON.parse(String(r.result||""));}catch(e){p=null;}
+    PG.pend=null;
+    if(!p||p.kind!=="study-site-progress"||!p.data||typeof p.data!=="object")pgSay("這不是本站下載的進度檔，請選「下載進度」存下來的 .json 檔。",1);
+    else if(p.site!==PG_SITE)pgSay(`這是「${esc(p.title||p.site||"其他網站")}」的進度檔，不是這個網站的，沒有匯入。`,1);
+    else{PG.pend=p;pgSay("");}
+    progRefresh();};
+  r.onerror=()=>{pgSay("讀不到這個檔案，請再試一次。",1);progRefresh();};
+  r.readAsText(file);}
+function progDo(mode){
+  const p=PG.pend;if(!p)return;
+  const before=progGet();
+  try{progApply(p.data,mode);}catch(e){progApply(before,"replace");pgSay("檔案內容有問題，沒有匯入。",1);PG.pend=null;progRefresh();return;}
+  PG.undo=before;PG.pend=null;
+  pgSay(`已${mode==="merge"?"合併":"取代"} ✓ 現在有 ${progCount(progGet())}。`,0,1);
+  progAfter();progReopen();}
+function progUndo(){if(!PG.undo)return;progApply(PG.undo,"replace");PG.undo=null;pgSay("已復原成上傳前的進度。");progAfter();progReopen();}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-prog]");if(!b)return;
+  e.stopPropagation();const a=b.dataset.prog;
+  if(a==="dl")progDownload();
+  else if(a==="pick"){const f=document.getElementById("pgFile");if(f){f.value="";f.click();}}
+  else if(a==="merge"||a==="replace")progDo(a);
+  else if(a==="cancel"){PG.pend=null;pgSay("");progRefresh();}
+  else if(a==="undo")progUndo();},true);
+document.addEventListener("change",e=>{const t=e.target;if(t&&t.id==="pgFile"){e.stopPropagation();progRead(t.files&&t.files[0]);}},true);
+
 
 /* ---------- 路由 ---------- */
 const TABS=[["home","首頁"],["key","必考"]].concat(F.drill?[["drill","跑考"]]:[],GCH?[["trays",LBL.group]]:[],CMP.length?[["cmp","對照"]]:[],MN.length?[["mn","口訣"]]:[]);
@@ -508,6 +581,7 @@ function home(){
     ${SD.site.heroLine?`<p>${fillN(SD.site.heroLine)}</p>`:""}
     <div class="folds">
       <details><summary>${OFFLINE?"離線版（目前使用中）":"下載離線版"}</summary><div class="body">${offlineNote()}${OFFLINE?"":`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px"><button class="pill primary" data-act="dloff" id="dloff">下載離線版</button></div>`}</div></details>
+      <details id="pgDet"><summary>進度備份（下載／上傳）</summary><div class="body" id="pgBody">${progBoxInner()}</div></details>
       <details><summary>網頁提示詞</summary><div class="body">通用版，任何要認圖的科目都能用：複製提示詞並下載網站模板，連同你的講義交給 Claude。下載沒反應時改按「複製模板」，貼到文字檔存成 template.html。
         <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px"><button class="pill primary" data-act="copy">複製提示詞</button><button class="pill" data-act="dltpl" id="dltpl">下載網站模板</button><button class="pill" data-act="copytpl" id="copytpl">複製模板</button></div><pre class="prompt" id="prompt">${esc(PROMPT)}</pre></div></details>
       <details><summary>網頁說明</summary><div class="body"><ul>${(SD.info||[]).map(x=>`<li>${fillN(x)}</li>`).join("")}</ul></div></details>

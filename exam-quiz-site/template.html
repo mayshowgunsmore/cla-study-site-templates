@@ -259,6 +259,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 html.bmodal-open,html.bmodal-open body{overflow:hidden}
 @media (max-width:560px){.bmodal{width:calc(100% - 12px);padding:10px}.bmodal .card{padding:14px}.btable col.c0{width:28px}.btable col.c2{width:27%}.btable col.c4,.btable col.c5{width:40px}.bstemb{-webkit-line-clamp:3}.btable .bu2{padding:1px 5px;font-size:.66rem}.btable .balso{font-size:.66rem}.bktools h2{font-size:1.1rem}.bktools button{padding:5px 10px;font-size:.8rem}}
 .qimg{margin:10px 0 4px;text-align:center}.qimg img{max-width:100%;max-height:340px;border-radius:10px;border:1px solid var(--line);background:#fff}
+.pgrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.pgbox{margin-top:12px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px}.pgbox p{margin:0 0 8px}.pgmsg{margin:10px 0 0;color:var(--good)}.pgmsg.bad{color:var(--bad)}.pgmsg button{margin-left:6px}
 </style>
 </head><body>
 <div class="wrap" id="app"></div>
@@ -419,6 +420,76 @@ async function save(){
 }
 function saveSoon(){lsWrite();clearTimeout(saveTimer);saveTimer=setTimeout(save,1200);}
 
+const PG_SITE=SK,PG_BTN={p:"xbtn",s:"ghost"};
+const PG_MERGE="兩邊的紀錄都留下，同一題取較新的那次作答（記憶曲線排程跟著它），收藏兩邊加起來，考試日期取較新改的那次。";
+function progGet(){return pgClone({p:P,f:FAV,x:X});}
+function progCount(d){d=d||{};return `${Object.keys(d.p||{}).length} 題作答紀錄、${Object.keys(d.f||{}).length} 題收藏`;}
+function progApply(d,mode){d=pgClone(d);const p=d.p||{},f=d.f||{},x=d.x||{};
+  if(mode==="replace"){P=p;FAV=f;X=x;}
+  else{P=merge(P,p);FAV=Object.assign({},f,FAV);if((x.t||0)>(X.t||0))X=x;}
+  applyAlias();}
+function progAfter(){clearTimeout(saveTimer);save();if(state.screen==="setup")autoCram();render(true);}
+
+/* ---------- 進度備份：把進度下載成 .json 檔，上傳時選「合併」或「取代」，可復原 ---------- */
+const PG={pend:null,undo:null,msg:"",err:false,canUndo:false};
+const pgClone=o=>JSON.parse(JSON.stringify(o||{}));
+const pgPad=n=>String(n).padStart(2,"0");
+function pgStamp(d){return `${d.getFullYear()}${pgPad(d.getMonth()+1)}${pgPad(d.getDate())}-${pgPad(d.getHours())}${pgPad(d.getMinutes())}`;}
+function pgDate(s){const d=new Date(s);if(isNaN(d))return "時間不明";return `${d.getFullYear()}/${pgPad(d.getMonth()+1)}/${pgPad(d.getDate())} ${pgPad(d.getHours())}:${pgPad(d.getMinutes())}`;}
+function pgTitle(){return String(document.title||"網站").replace(/（離線版）$/,"");}
+function pgB(act,label,primary){return `<button type="button" class="${primary?PG_BTN.p:PG_BTN.s}" data-prog="${act}">${label}</button>`;}
+function progBoxInner(){
+  let h=`<p>把這個網站的作答紀錄、收藏與考試日期存成一個小檔案（.json）。換手機或電腦、在線上版與離線版之間搬進度、或想留一份備份時用：在原本的地方按「下載進度」，再到新的地方打開同一個網站，按「上傳進度」選這個檔案。${OFFLINE?"離線版的進度只存在這台裝置，要帶回線上版就從這裡下載。":"登入時進度本來就會跟著帳號同步，這裡是另外留一份。"}只能上傳這個網站下載的進度檔。</p>
+  <div class="pgrow">${pgB("dl","下載進度",1)}${pgB("pick","上傳進度",1)}<input type="file" id="pgFile" accept=".json,application/json" hidden></div>`;
+  if(PG.pend){const f=PG.pend;
+    h+=`<div class="pgbox"><p>檔案：<b>${esc(f.title||"")}</b>，${pgDate(f.at)} 下載${f.offline?"（離線版）":""}，裡面有 ${progCount(f.data)}。<br>目前網站上有 ${progCount(progGet())}。</p>
+    <p><b>合併</b>：${PG_MERGE}<br><b>取代</b>：網站上的進度整個換成檔案裡的。兩種都可以按「復原」改回來。</p>
+    <div class="pgrow">${pgB("merge","合併",1)}${pgB("replace","取代")}${pgB("cancel","取消")}</div></div>`;}
+  if(PG.msg)h+=`<p class="pgmsg${PG.err?" bad":""}">${PG.msg}${PG.canUndo&&PG.undo?" "+pgB("undo","↩ 復原"):""}</p>`;
+  return h;}
+function progRefresh(){const b=document.getElementById("pgBody");if(b)b.innerHTML=progBoxInner();}
+function progReopen(){const d=document.getElementById("pgDet");if(d)d.open=true;progRefresh();}
+function pgSay(msg,err,canUndo){PG.msg=msg;PG.err=!!err;PG.canUndo=!!canUndo;}
+async function progDownload(){
+  const data=progGet();
+  const pack={kind:"study-site-progress",v:1,site:PG_SITE,title:pgTitle(),at:new Date().toISOString(),offline:!!OFFLINE,data};
+  const txt=JSON.stringify(pack);
+  const fn=pgTitle().replace(/[\\/:*?"<>|]/g,"_")+"_進度_"+pgStamp(new Date())+".json";
+  let dl=null;try{dl=(window.claude&&window.claude.use)?await window.claude.use("downloads"):null;}catch(e){dl=null;}
+  try{
+    if(dl)await dl.save({filename:fn,data:txt});
+    else{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);}
+    pgSay(`已下載「${esc(fn)}」（${progCount(data)}）`);
+  }catch(e){if(e&&e.code==="declined")pgSay("已取消下載");else pgSay("無法下載，請稍後再試",1);}
+  progRefresh();}
+function progRead(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{let p=null;try{p=JSON.parse(String(r.result||""));}catch(e){p=null;}
+    PG.pend=null;
+    if(!p||p.kind!=="study-site-progress"||!p.data||typeof p.data!=="object")pgSay("這不是本站下載的進度檔，請選「下載進度」存下來的 .json 檔。",1);
+    else if(p.site!==PG_SITE)pgSay(`這是「${esc(p.title||p.site||"其他網站")}」的進度檔，不是這個網站的，沒有匯入。`,1);
+    else{PG.pend=p;pgSay("");}
+    progRefresh();};
+  r.onerror=()=>{pgSay("讀不到這個檔案，請再試一次。",1);progRefresh();};
+  r.readAsText(file);}
+function progDo(mode){
+  const p=PG.pend;if(!p)return;
+  const before=progGet();
+  try{progApply(p.data,mode);}catch(e){progApply(before,"replace");pgSay("檔案內容有問題，沒有匯入。",1);PG.pend=null;progRefresh();return;}
+  PG.undo=before;PG.pend=null;
+  pgSay(`已${mode==="merge"?"合併":"取代"} ✓ 現在有 ${progCount(progGet())}。`,0,1);
+  progAfter();progReopen();}
+function progUndo(){if(!PG.undo)return;progApply(PG.undo,"replace");PG.undo=null;pgSay("已復原成上傳前的進度。");progAfter();progReopen();}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-prog]");if(!b)return;
+  e.stopPropagation();const a=b.dataset.prog;
+  if(a==="dl")progDownload();
+  else if(a==="pick"){const f=document.getElementById("pgFile");if(f){f.value="";f.click();}}
+  else if(a==="merge"||a==="replace")progDo(a);
+  else if(a==="cancel"){PG.pend=null;pgSay("");progRefresh();}
+  else if(a==="undo")progUndo();},true);
+document.addEventListener("change",e=>{const t=e.target;if(t&&t.id==="pgFile"){e.stopPropagation();progRead(t.files&&t.files[0]);}},true);
+
 /* ---------- state ---------- */
 let state={screen:"setup",years:new Set(YEARS),units:new Set(UIDS),count:20,order:"new",list:[],i:0,ans:{},rf:"all",copen:new Set(),locked:false,recorded:new Set(),xopen:{},wsel:new Set(),fsel:new Set(),fsort:"unit",favUndo:[],resetUndo:null,qtime:{},wsort:"unit",cramFor:null,cdedit:false,qt0:null,qacc:0,info:{},qt:"all",flip:new Set(),kwopen:new Set(),byears:new Set(YEARS),bsort:"old",bdup:true,bonly:"all",bqt:"all",bq:"",bsel:new Set(),bmodal:null};
 (function(){const s=lsGet(PREF_KEY);if(s){if(s.units)state.units=new Set(s.units);if(s.years){state.years=new Set(s.years.filter(y=>YEARS.includes(y)));const known=s.ky||YEARS;YEARS.filter(y=>!known.includes(y)).forEach(y=>state.years.add(y));}if(s.count)state.count=s.count;if(s.order)state.order=s.order;if(s.cramFor)state.cramFor=s.cramFor;if(s.qt)state.qt=s.qt;}})();
@@ -535,6 +606,7 @@ function setupHTML(){
       ${D.site.deco==="pill"?`<div class="pill" aria-hidden="true"><i></i><i></i></div>`:D.site.deco==="tissue"?`<div class="tissue" aria-hidden="true"></div>`:""}
       <div class="infos">
         <details class="info"><summary>${OFFLINE?"離線版（目前使用中）":"下載離線版"}</summary><div class="muted infotxt"><p>${offlineNote()}</p>${OFFLINE?"":`<div class="row"><button class="xbtn" id="dlOff">下載離線版</button></div>`}</div></details>
+        <details class="info" id="pgDet"><summary>進度備份（下載／上傳）</summary><div class="muted infotxt" id="pgBody">${progBoxInner()}</div></details>
         <details class="info lede-box"><summary>網頁提示詞</summary><div class="promptbox"><div class="row"><button class="xbtn" id="copyPrompt">複製提示詞</button><button id="dlTpl">下載網站模板</button><button class="ghost" id="copyTpl">複製模板</button></div><small class="muted">通用版，任何科目都能用：複製提示詞並下載網站模板，連同你的講義、考古題交給 Claude。下載沒反應時改按「複製模板」，貼到文字檔存成 template.html。</small><pre class="promptpre" id="promptText">${esc(PROMPT)}</pre></div></details>
       <details class="info"><summary>網頁說明</summary><div class="muted infotxt">
         ${(D.info||[]).map(p=>`<p><b>${p.h}：</b>${fill(p.t,{total})}</p>`).join("")}
