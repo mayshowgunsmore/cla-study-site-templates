@@ -60,7 +60,7 @@ for nm in ('key','fix','extra','hot','num'):
     for x in D.get(nm,[]):
         if x.get('sec') and x['sec'] not in SECS: E.append(f'{nm} 的節 {x["sec"]} 不存在')
 for x in D.get('key',[]):
-    if x.get('t') not in ('must','freq','imp','nat','teach','skip'): E.append(f'必考標記類型 {x.get("t")} 不對')
+    if x.get('t') not in ('must','freq','imp','nat','teach','skip') and x.get('t') not in (D.get('tagDefs') or {}): E.append(f'必考標記類型 {x.get("t")} 不對')
 nq=0;ns=0
 for sid,qs in D.get('quiz',{}).items():
     if sid not in SECS: E.append(f'測驗的節 {sid} 不存在'); continue

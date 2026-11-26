@@ -701,6 +701,66 @@ const dueSet=()=>allIds().filter(isDue);
 const starSet=()=>allIds().filter(i=>S.star[i]);
 const chNo=id=>CH.indexOf(chOf(id))+1;
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+/* ---------- PDF export: canvas → JPEG → PDF, no library, works offline ---------- */
+const PDFF='"PingFang TC","Noto Sans TC","Microsoft JhengHei","Heiti TC","Noto Sans CJK TC",sans-serif';
+const PDFS={h:[30,800,"#1d3557",46,0],sm:[21,400,"#6b6b6b",32,0],p:[27,500,"#111",42,0],opt:[26,400,"#222",40,18],ok:[26,800,"#17803d",40,18],lab:[25,800,"#a86b00",40,0],ex:[23,400,"#333",35,18],note:[22,400,"#555",34,0]};
+function pdfWrap(ctx,s,maxW){const out=[];for(const para of String(s).split("\n")){const tk=para.match(/[A-Za-z0-9À-ɏͰ-Ͽ.,;:%'’+\-\/=<>]+|\s+|[\s\S]/gu)||[""];let line="";
+  const pushTok=t=>{if(ctx.measureText(line+t).width<=maxW||!line.trim()){if(ctx.measureText(t).width>maxW&&!line.trim()){for(const c of t){if(ctx.measureText(line+c).width>maxW&&line){out.push(line);line="";}line+=c;}}else line+=t;}else{out.push(line.replace(/\s+$/,""));line=/^\s+$/.test(t)?"":t;}};
+  tk.forEach(pushTok);out.push(line.replace(/\s+$/,""));}return out;}
+function pdfLoadImg(src){return new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=src;});}
+async function pdfRender(blocks,title,sub,onStep){
+  const W=1240,H=1754,M=100,CW=W-2*M,TOP=120,BOT=H-120,pages=[];let ctx,y;
+  const newPage=()=>{const c=document.createElement("canvas");c.width=W;c.height=H;ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);ctx.textBaseline="alphabetic";pages.push(c);y=TOP;};
+  const font=k=>`${PDFS[k][1]} ${PDFS[k][0]}px ${PDFF}`;
+  newPage();ctx.fillStyle="#1d3557";ctx.font=`800 40px ${PDFF}`;pdfWrap(ctx,title,CW).forEach(l=>{ctx.fillText(l,M,y+40);y+=54;});
+  ctx.fillStyle="#6b6b6b";ctx.font=`400 24px ${PDFF}`;ctx.fillText(sub,M,y+28);y+=56;
+  for(let qi=0;qi<blocks.length;qi++){
+    const qb=blocks[qi];if(qi&&y>BOT-260)newPage();
+    if(qi){ctx.strokeStyle="#d9d9d9";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(M,y+8);ctx.lineTo(W-M,y+8);ctx.stroke();y+=30;}
+    for(const b of qb){
+      if(b.t==="img"){const im=await pdfLoadImg(b.s);if(!im)continue;let w=Math.min(CW,im.naturalWidth*1.6),h=im.naturalHeight*w/im.naturalWidth;if(h>700){h=700;w=im.naturalWidth*h/im.naturalHeight;}if(y+h>BOT)newPage();ctx.drawImage(im,M,y+8,w,h);y+=h+20;continue;}
+      const [fs,,col,lh,ind]=PDFS[b.t];ctx.font=font(b.t);const ls=pdfWrap(ctx,b.s,CW-ind);
+      for(let i=0;i<ls.length;i++){if(y+lh>BOT){newPage();ctx.font=font(b.t);}ctx.fillStyle=col;ctx.fillText(ls[i],M+(i?ind:0),y+fs);y+=lh;}
+      y+=b.t==="h"?2:6;}
+    y+=14;if(onStep&&qi%8===7){onStep(qi+1,blocks.length);await new Promise(r=>setTimeout(r,0));}
+  }
+  pages.forEach((c,i)=>{const x=c.getContext("2d");x.font=`400 20px ${PDFF}`;x.fillStyle="#9a9a9a";x.textAlign="center";x.fillText(`${title}　·　${i+1} / ${pages.length}`,W/2,H-60);});
+  return {pages,W,H};}
+async function pdfBuild(pages,W,H){
+  const jpgs=[];for(const c of pages){const bl=await new Promise(r=>{try{c.toBlob(r,"image/jpeg",0.8);}catch(e){r(null);}});
+    if(bl)jpgs.push(new Uint8Array(await bl.arrayBuffer()));else{const b64=c.toDataURL("image/jpeg",0.8).split(",")[1],bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);jpgs.push(u);}}
+  const enc=new TextEncoder(),parts=[],xref=[];let off=0;const push=x=>{const u=typeof x==="string"?enc.encode(x):x;parts.push(u);off+=u.length;};
+  const obj=(id,f)=>{xref[id]=off;push(id+" 0 obj\n");f();push("\nendobj\n");};
+  const n=jpgs.length,PW=595.28,PH=841.89,cs=`q ${PW} 0 0 ${PH} 0 0 cm /Im0 Do Q`;
+  push("%PDF-1.4\n%âãÏÓ\n");
+  obj(1,()=>push("<< /Type /Catalog /Pages 2 0 R >>"));
+  obj(2,()=>push(`<< /Type /Pages /Count ${n} /Kids [${jpgs.map((_,i)=>(3+3*i)+" 0 R").join(" ")}] >>`));
+  jpgs.forEach((j,i)=>{const p=3+3*i;
+    obj(p,()=>push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 ${p+2} 0 R >> >> /Contents ${p+1} 0 R >>`));
+    obj(p+1,()=>push(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+    obj(p+2,()=>{push(`<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${j.length} >>\nstream\n`);push(j);push("\nendstream");});});
+  const xo=off,tot=3+3*n;let xs=`xref\n0 ${tot}\n0000000000 65535 f \n`;for(let k=1;k<tot;k++)xs+=String(xref[k]).padStart(10,"0")+" 00000 n \n";
+  push(xs);push(`trailer\n<< /Size ${tot} /Root 1 0 R >>\nstartxref\n${xo}\n%%EOF\n`);
+  return new Blob(parts,{type:"application/pdf"});}
+async function pdfSave(blob,fn){
+  let dl=null;try{dl=(window.claude&&window.claude.use)?await window.claude.use("downloads"):null;}catch(e){dl=null;}
+  if(dl){await dl.save({filename:fn,data:blob});return;}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);}
+async function pdfExport(blocks,label,btn){
+  if(!blocks.length)return;if(btn&&btn.dataset.busy)return;const old=btn?btn.textContent:"";if(btn){btn.dataset.busy="1";btn.disabled=true;btn.textContent="產生 PDF 中…";}
+  try{const now=new Date(),stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}`;
+    const base=String(document.title||"網站").replace(/[\\/:*?"<>|]/g,"_");
+    const {pages,W,H}=await pdfRender(blocks,`${base}　${label}`,`共 ${blocks.length} 題・${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} 輸出`,(i,n)=>{if(btn)btn.textContent=`排版中 ${i}／${n}`;});
+    if(btn)btn.textContent="壓縮中…";const blob=await pdfBuild(pages,W,H);
+    await pdfSave(blob,`${base}_${label}_${stamp}.pdf`);toast(`已產生 PDF（${pages.length} 頁）`,2200);}
+  catch(e){toast(e&&e.code==="declined"?"已取消下載":"PDF 產生失敗，請稍後再試",2200);}
+  finally{if(btn){delete btn.dataset.busy;btn.disabled=false;btn.textContent=old;}}}
+function pdfBlocksI(ids){return ids.map((id,i)=>{const it=I[id],p=S.rec[RK(id)],c=chOf(id),b=[];
+  b.push({t:"h",s:`${i+1}.　${NMp(it)}`});b.push({t:"sm",s:`第 ${chNo(id)} 章 ${c.t}　・　${p?`錯 ${p.w} 次，最近一次${p.l===1?"答對":"答錯"}`:"還沒練過"}`});
+  b.push({t:"img",s:figSrc(it.orig||it.img)});
+  if((it.f||[]).length){b.push({t:"lab",s:LBL.f});it.f.forEach(x=>b.push({t:"ex",s:"・"+plainTxt(x)}));}
+  if((it.c||[]).length){b.push({t:"lab",s:LBL.c});it.c.forEach(x=>b.push({t:"ex",s:"・"+plainTxt(x)}));}
+  return b;});}
 function copyText(t){const ok=()=>toast("已複製",500,"copied"),no=()=>toast("已展開文字，請自行選取複製");
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok).catch(no);else no();}
 function outText(ids){return ids.map(id=>{const it=I[id],p=S.rec[RK(id)],c=chOf(id);
@@ -745,7 +805,8 @@ function bookEntry(){const nW=wrongSet().length,nS=starSet().length;
       <li><b>單題輸出</b>：看完答案並按下答對或答錯後，按「輸出這題」；總檢討每一題下方也有。</li>
       <li><b>整輪輸出</b>：一輪結束後，在總檢討按「輸出這輪錯題」。</li>
       <li><b>挑題輸出</b>：按「查看錯題本」，勾選後按「輸出勾選的錯題」。</li>
-      <li><b>收藏本輸出</b>：按「⭐ 收藏本」，勾選後按「輸出勾選的收藏」；按錯取消收藏可以按「↩ 復原」。</li></ol>
+      <li><b>收藏本輸出</b>：按「⭐ 收藏本」，勾選後按「輸出勾選的收藏」；按錯取消收藏可以按「↩ 復原」。</li>
+      <li><b>下載 PDF</b>：錯題本、收藏本勾選後，以及總檢討的這輪錯題，都可以按「下載 PDF」，把圖（含標註的原圖）、${LBL.item}名稱、${LBL.f}與${LBL.c}排成 A4 PDF，可列印或存到平板；不需要網路，離線版也能用。</li></ol>
       <p class="muted" style="margin:6px 0 0;font-size:.88rem">按下後文字會自動複製並跳出「已複製」，下方也會展開文字。每題包含章節、${LBL.item}名稱、${LBL.f}、${LBL.c}與作答紀錄，前後用一行 === 隔開，可以直接貼到筆記或問 AI。</p></details></section>`;}
 function drillSetup(){
   const sel=selIds(),selNew=sel.filter(i=>!S.rec[RK(i)]).length,selDue=sel.filter(isDue).length,nS=starSet().length,nNW=nowWrong().length,nRec=modeKeys().length;
@@ -819,7 +880,7 @@ function drillReview(){const r=D.run,L=r.q.filter(x=>x.ok!=null),right=L.filter(
     <div class="scorecard">${ringSVG(right,null,L.length,`<b>${pct}%</b><span>答對 ${right}/${L.length}</span>`,1)}<div class="ub">${ub||'<span class="muted">這一輪還沒有作答。</span>'}</div></div>
     <div class="mono muted" id="runtime" style="font-size:.88rem">⏱ 這輪總時間 ${fmtMs(tot)}${L.length?`　平均每題 ${Math.round(tot/L.length/100)/10} 秒`:''}</div></section>
    <div class="spread"><div class="chips"><button class="pill${D.rf==="all"?' on':''}" data-act="drf" data-v="all">全部題目</button><button class="pill${D.rf==="wrong"?' on':''}" data-act="drf" data-v="wrong">只看錯題（${wrong.length}）</button></div>
-     <div class="chips">${wrong.length?`<button class="pill out" data-act="dxround">輸出這輪錯題（${wrong.length}）</button><button class="pill" data-act="dredo">重練這輪錯題</button>`:''}<button class="pill primary" data-act="dhome">回到跑考練習</button></div></div>
+     <div class="chips">${wrong.length?`<button class="pill out" data-act="dxround">輸出這輪錯題（${wrong.length}）</button><button class="pill out" data-act="dpdfround">這輪錯題 PDF</button><button class="pill" data-act="dredo">重練這輪錯題</button>`:''}<button class="pill primary" data-act="dhome">回到跑考練習</button></div></div>
    ${xbox(r.x.round,"x-round")}
    ${items||`<p class="muted">${L.length?'這一輪沒有錯題。':'這一輪還沒有作答。'}</p>`}
    <div class="nextbar"><span></span><button class="pill primary" data-act="dhome">回到跑考練習</button></div></div>`;}
@@ -845,7 +906,7 @@ function wrongPage(){const ids=wrongIds(),sel=ids.filter(i=>W.sel[i]),n=sel.leng
   const cells=id=>{if(!id)return ["","",""];const p=S.rec[RK(id)];return [`<td class="cnt">${p.w}</td>`,`<td class="fix">${p.l===1?'<span class="okm" title="最近一次答對">✓</span>':'<span class="nom" title="最近一次答錯">✗</span>'}${p.g?'<div class="due">用猜的</div>':''}</td>`,`<td class="due">${dueLabel(effDue(id))}</td>`];};
   return `<div class="stack dp">
    <div class="wtools"><h2><span class="mk">錯題本</span> <span class="muted mono" style="font-size:.9rem">${ids.length} 個</span></h2>
-    <div class="row"><button class="pill ${n?'out':'off'}" data-act="wout" aria-disabled="${n?'false':'true'}">輸出勾選的錯題（${n}）</button><button class="pill ${n?'':'off'}" data-act="wgo" aria-disabled="${n?'false':'true'}">練習勾選的題目</button><button class="pill primary" data-act="go" data-r="home">回首頁</button></div></div>
+    <div class="row"><button class="pill ${n?'out':'off'}" data-act="wout" aria-disabled="${n?'false':'true'}">輸出勾選的錯題（${n}）</button><button class="pill ${n?'out':'off'}" data-act="wpdf" aria-disabled="${n?'false':'true'}">下載 PDF（${n}）</button><button class="pill ${n?'':'off'}" data-act="wgo" aria-disabled="${n?'false':'true'}">練習勾選的題目</button><button class="pill primary" data-act="go" data-r="home">回首頁</button></div></div>
    <div class="chips"><button class="pill" data-act="go" data-r="drill">← 回跑考練習</button><button class="pill" data-act="go" data-r="starbook">⭐ 收藏本 ${starSet().length}</button><span class="muted" style="font-size:.85rem;align-self:center">今天到期 ${ids.filter(isDue).length} 個</span></div>
    <div class="spread"><div class="chips"><span class="muted" style="font-size:.88rem;align-self:center">排列方式</span>${[["ch","照章節"],["n","照錯的次數（多→少）"],["due","照複習日"]].map(s=>`<button class="pill${W.sort===s[0]?' on':''}" data-act="wsort" data-v="${s[0]}">${s[1]}</button>`).join("")}</div>
     <span class="muted" style="font-size:.85rem">已改正 ${fixed}／${ids.length} 個</span></div>
@@ -863,7 +924,7 @@ function starPage(){const ids=starIds(),sel=ids.filter(i=>B.sel[i]),n=sel.length
   const cells=id=>{if(!id)return ["",""];const p=S.rec[RK(id)];return [`<td class="cnt">${p&&p.w?p.w:0}</td>`,`<td class="fix">${!p?'<span class="muted" title="還沒練過">—</span>':p.l===1?'<span class="okm" title="最近一次答對">✓</span>':'<span class="nom" title="最近一次答錯">✗</span>'}</td>`];};
   return `<div class="stack dp">
    <div class="wtools"><h2>⭐ <span class="mk">收藏本</span> <span class="muted mono" style="font-size:.9rem">${ids.length} 個</span></h2>
-    <div class="row"><button class="pill ${n?'out':'off'}" data-act="bout" aria-disabled="${n?'false':'true'}">輸出勾選的收藏（${n}）</button><button class="pill ${n?'':'off'}" data-act="bgo" aria-disabled="${n?'false':'true'}">練習勾選的題目</button><button class="pill ${n?'':'off'}" data-act="bun" aria-disabled="${n?'false':'true'}">取消收藏勾選的題目</button><button class="pill primary" data-act="go" data-r="home">回首頁</button></div></div>
+    <div class="row"><button class="pill ${n?'out':'off'}" data-act="bout" aria-disabled="${n?'false':'true'}">輸出勾選的收藏（${n}）</button><button class="pill ${n?'out':'off'}" data-act="bpdf" aria-disabled="${n?'false':'true'}">下載 PDF（${n}）</button><button class="pill ${n?'':'off'}" data-act="bgo" aria-disabled="${n?'false':'true'}">練習勾選的題目</button><button class="pill ${n?'':'off'}" data-act="bun" aria-disabled="${n?'false':'true'}">取消收藏勾選的題目</button><button class="pill primary" data-act="go" data-r="home">回首頁</button></div></div>
    <div class="chips"><button class="pill" data-act="go" data-r="drill">← 回跑考練習</button><button class="pill" data-act="go" data-r="wrongbook">錯題本 ${wrongSet().length}</button></div>
    ${u?`<div class="note g" id="starundo">剛才取消收藏了 ${Object.keys(u).length} 個${B.undo.length>1?`（還可以再往回復原 ${B.undo.length-1} 次）`:''}　<button class="jump" data-act="bundo" style="min-height:44px">↩ 復原</button></div>`:''}
    <div class="chips"><span class="muted" style="font-size:.88rem;align-self:center">排列方式</span>${[["ch","照章節"],["t","照收藏時間（新→舊）"]].map(s=>`<button class="pill${B.sort===s[0]?' on':''}" data-act="bsort" data-v="${s[0]}">${s[1]}</button>`).join("")}</div>
@@ -1016,6 +1077,9 @@ document.addEventListener("click",ev=>{try{
     else{p.iv=cur.prev.iv;p.due=cur.prev.due;p.g=0;cur.g=false;}save();keepScroll(render);}
   else if(a==="dstar"){const id=b.dataset.id;if(S.star[id]){delete S.star[id];toast("已取消收藏");}else{S.star[id]=Date.now();toast("已收藏，可在收藏本查看");}save();keepScroll(render);}
   else if(a==="dx"){const t=outText([b.dataset.id]);D.run.x[b.dataset.id]=t;keepScroll(render);copyText(t);}
+  else if(a==="dpdfround"){const ids=D.run.q.filter(x=>x.ok===false).map(x=>x.id);pdfExport(pdfBlocksI(ids),"這輪錯題",b);}
+  else if(a==="wpdf"){const ids=wrongIds().filter(i=>W.sel[i]);if(!ids.length){toast("先勾選要輸出的"+LBL.item+"");return;}pdfExport(pdfBlocksI(ids),"錯題本",b);}
+  else if(a==="bpdf"){const ids=starIds().filter(i=>B.sel[i]);if(!ids.length){toast("先勾選要輸出的"+LBL.item+"");return;}pdfExport(pdfBlocksI(ids),"收藏本",b);}
   else if(a==="dxround"){const ids=D.run.q.filter(x=>x.ok===false).map(x=>x.id);const t=outText(ids);D.run.x.round=t;keepScroll(render);copyText(t);}
   else if(a==="wsort"){W.sort=b.dataset.v;keepScroll(render);}
   else if(a==="wsel"){W.sel[b.dataset.id]=b.checked;keepScroll(render);}

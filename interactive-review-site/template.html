@@ -161,6 +161,7 @@ h2.h::before{content:"";width:14px;height:14px;border-radius:50%;background:var(
 .sec-foot .done[disabled]{opacity:.55;cursor:default}
 .chip{display:inline-block;font-size:.7rem;font-weight:700;line-height:1;padding:4px 7px;border-radius:4px;white-space:nowrap}
 .chip.must{background:var(--red-soft);color:var(--red)}
+.chip.tone-blue{background:var(--blue-soft);color:var(--blue);box-shadow:inset 0 0 0 1.5px currentColor}.chip.tone-green{background:var(--green-soft);color:var(--green);box-shadow:inset 0 0 0 1.5px currentColor}.chip.tone-red{background:var(--red-soft);color:var(--red);box-shadow:inset 0 0 0 1.5px currentColor}.chip.tone-gold{background:var(--hi-soft);color:var(--hi-ink);box-shadow:inset 0 0 0 1.5px currentColor}.chip.tone-gray{background:var(--surface2);color:var(--muted);box-shadow:inset 0 0 0 1.5px currentColor}
 .chip.nat{background:var(--blue-soft);color:var(--blue)}
 .chip.past{background:var(--hi-soft);color:var(--hi-ink)}
 .chip.freq{background:var(--red-soft);color:var(--red);box-shadow:inset 0 0 0 1.5px var(--red)}
@@ -716,7 +717,7 @@ function doAnswer(secId,i,k){
 
 /* ---------- 頁面 ---------- */
 const SHELL=document.createElement('div');SHELL.className='app';
-function chip(t){return `<span class="chip ${t}">${TAGN[t]||t}</span>`}
+function chip(t){const d=TAGDEF[t];return `<span class="chip ${t}${d&&d.tone?' tone-'+d.tone:''}">${esc(TAGN[t]||t)}</span>`}
 function pct(ids){const n=ids.filter(i=>ST.done[i]).length;return ids.length?Math.round(n*100/ids.length):0}
 /* 以台灣時間的日曆天計算：考試當天＝0，已過為負數 */
 function days(){const t=new Date(Date.now()+8*3600e3);
@@ -815,16 +816,17 @@ function pageKey(){
   const tf=ST.keyType||'all',cf=ST.keyCh||'all';
   const list=KEY.filter(k=>(tf==='all'||k.t===tf)&&(cf==='all'||SECS[k.sec].ch.id===cf));
   const KF=KEY.some(k=>k.t==='freq');
-  const T=[['all','全部'],['must','必考必背']].concat(KF?[['freq',LBL.freq]]:[]).concat([['imp','很重要'],['nat','國考'],['teach','老師提到'],['skip','可先略過']]);
+  const CT=Object.keys(TAGDEF).filter(t=>KEY.some(k=>k.t===t));const T=[['all','全部'],['must','必考必背']].concat(KF?[['freq',LBL.freq]]:[]).concat(CT.map(t=>[t,TAGN[t]])).concat([['imp','很重要'],['nat','國考'],['teach','老師提到'],['skip','可先略過']]);
   return `<div class="ch-head"><h1>必考標記</h1><div class="sub">${esc(LBL.keySub)}</div></div>
   <div class="tools">${T.map(([k,n])=>`<button class="btn${tf===k?' on':''}" data-kt="${k}">${n}</button>`).join('')}</div>
   <div class="tools">${[['all','全部章']].concat(CH.map(c=>[c.id,c.no])).map(([k,n])=>`<button class="btn${cf===k?' on':''}" data-kc="${k}">${n}</button>`).join('')}</div>
   ${tf==='skip'||tf==='all'?(SD.keyTip||''):''}
   ${KF&&(tf==='freq'||tf==='all')&&LBL.freqTip?`<div class="note tip"><b>${esc(LBL.freq)}怎麼判定</b>${esc(LBL.freqTip)}</div>`:''}
+  ${CT.filter(t=>TAGDEF[t].tip&&(tf===t||tf==='all')).map(t=>`<div class="note tip"><b>${esc(TAGN[t])}怎麼判定</b>${esc(TAGDEF[t].tip)}</div>`).join('')}
   ${list.length?list.map(k=>`<details class="card xcard" data-xsec="${k.sec}" style="padding:13px 15px"><summary>
     <div class="row" style="gap:6px;margin-bottom:6px">${chip(k.t==='skip'?'skip':k.t)}<span class="chip page">${esc(k.p)}</span>
       ${xLab(k.sec)}</div>
-    <div style="font-size:.95rem;line-height:1.7">${k.t==='freq'?esc(k.q):'「'+esc(k.q)+'」'}</div>${xHint()}</summary><div class="xbody"></div></details>`).join(''):'<p class="empty">這個條件下沒有標記</p>'}`;
+    <div style="font-size:.95rem;line-height:1.7">${k.t==='freq'||(TAGDEF[k.t]&&TAGDEF[k.t].plain)?esc(k.q):'「'+esc(k.q)+'」'}</div>${xHint()}</summary><div class="xbody"></div></details>`).join(''):'<p class="empty">這個條件下沒有標記</p>'}`;
 }
 
 function pageSprint(){

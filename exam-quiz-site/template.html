@@ -639,6 +639,7 @@ function setupHTML(){
           <p><b>整輪輸出：</b>寫完一輪在總檢討按「輸出這輪錯題」，一次複製這輪所有錯題。</p>
           <p><b>錯題本勾選輸出：</b>點「查看錯題本」，勾選想要的題目（表頭方塊可全選），按「輸出勾選的錯題」。</p>
           <p><b>收藏本勾選輸出：</b>點「⭐ 收藏本」，勾選題目後按「輸出勾選的收藏題」；按錯「取消收藏勾選的題目」時，可以按上方的「↩ 復原」救回來。</p>
+          <p><b>下載 PDF：</b>錯題本、收藏本、完整題庫勾選後，以及總檢討的這輪錯題，都可以按「下載 PDF」，把題目、選項、答案、逐選項詳解排成 A4 PDF，可直接列印或存到平板；不需要網路，下載的離線版也能用。題目多時要等幾秒。</p>
           <p><b>複製後怎麼用：</b>每題上下各有一行 ===，可直接貼到筆記、Notion 或傳給 Claude 請它出類似題、整理成考前重點；看到「已複製」就代表已在剪貼簿。</p>
         </div></details>
       </section>
@@ -734,6 +735,69 @@ function exportText(qs){
     return "===\n"+lines.join("\n")+"\n===";
   }).join("\n");
 }
+/* ---------- PDF export: canvas → JPEG → PDF, no library, works offline ---------- */
+const PDFF='"PingFang TC","Noto Sans TC","Microsoft JhengHei","Heiti TC","Noto Sans CJK TC",sans-serif';
+const PDFS={h:[30,800,"#1d3557",46,0],sm:[21,400,"#6b6b6b",32,0],p:[27,500,"#111",42,0],opt:[26,400,"#222",40,18],ok:[26,800,"#17803d",40,18],lab:[25,800,"#a86b00",40,0],ex:[23,400,"#333",35,18],note:[22,400,"#555",34,0]};
+function pdfWrap(ctx,s,maxW){const out=[];for(const para of String(s).split("\n")){const tk=para.match(/[A-Za-z0-9À-ɏͰ-Ͽ.,;:%'’+\-\/=<>]+|\s+|[\s\S]/gu)||[""];let line="";
+  const pushTok=t=>{if(ctx.measureText(line+t).width<=maxW||!line.trim()){if(ctx.measureText(t).width>maxW&&!line.trim()){for(const c of t){if(ctx.measureText(line+c).width>maxW&&line){out.push(line);line="";}line+=c;}}else line+=t;}else{out.push(line.replace(/\s+$/,""));line=/^\s+$/.test(t)?"":t;}};
+  tk.forEach(pushTok);out.push(line.replace(/\s+$/,""));}return out;}
+function pdfLoadImg(src){return new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=src;});}
+async function pdfRender(blocks,title,sub,onStep){
+  const W=1240,H=1754,M=100,CW=W-2*M,TOP=120,BOT=H-120,pages=[];let ctx,y;
+  const newPage=()=>{const c=document.createElement("canvas");c.width=W;c.height=H;ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);ctx.textBaseline="alphabetic";pages.push(c);y=TOP;};
+  const font=k=>`${PDFS[k][1]} ${PDFS[k][0]}px ${PDFF}`;
+  newPage();ctx.fillStyle="#1d3557";ctx.font=`800 40px ${PDFF}`;pdfWrap(ctx,title,CW).forEach(l=>{ctx.fillText(l,M,y+40);y+=54;});
+  ctx.fillStyle="#6b6b6b";ctx.font=`400 24px ${PDFF}`;ctx.fillText(sub,M,y+28);y+=56;
+  for(let qi=0;qi<blocks.length;qi++){
+    const qb=blocks[qi];if(qi&&y>BOT-260)newPage();
+    if(qi){ctx.strokeStyle="#d9d9d9";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(M,y+8);ctx.lineTo(W-M,y+8);ctx.stroke();y+=30;}
+    for(const b of qb){
+      if(b.t==="img"){const im=await pdfLoadImg(b.s);if(!im)continue;let w=Math.min(CW,im.naturalWidth*1.6),h=im.naturalHeight*w/im.naturalWidth;if(h>700){h=700;w=im.naturalWidth*h/im.naturalHeight;}if(y+h>BOT)newPage();ctx.drawImage(im,M,y+8,w,h);y+=h+20;continue;}
+      const [fs,,col,lh,ind]=PDFS[b.t];ctx.font=font(b.t);const ls=pdfWrap(ctx,b.s,CW-ind);
+      for(let i=0;i<ls.length;i++){if(y+lh>BOT){newPage();ctx.font=font(b.t);}ctx.fillStyle=col;ctx.fillText(ls[i],M+(i?ind:0),y+fs);y+=lh;}
+      y+=b.t==="h"?2:6;}
+    y+=14;if(onStep&&qi%8===7){onStep(qi+1,blocks.length);await new Promise(r=>setTimeout(r,0));}
+  }
+  pages.forEach((c,i)=>{const x=c.getContext("2d");x.font=`400 20px ${PDFF}`;x.fillStyle="#9a9a9a";x.textAlign="center";x.fillText(`${title}　·　${i+1} / ${pages.length}`,W/2,H-60);});
+  return {pages,W,H};}
+async function pdfBuild(pages,W,H){
+  const jpgs=[];for(const c of pages){const bl=await new Promise(r=>{try{c.toBlob(r,"image/jpeg",0.8);}catch(e){r(null);}});
+    if(bl)jpgs.push(new Uint8Array(await bl.arrayBuffer()));else{const b64=c.toDataURL("image/jpeg",0.8).split(",")[1],bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);jpgs.push(u);}}
+  const enc=new TextEncoder(),parts=[],xref=[];let off=0;const push=x=>{const u=typeof x==="string"?enc.encode(x):x;parts.push(u);off+=u.length;};
+  const obj=(id,f)=>{xref[id]=off;push(id+" 0 obj\n");f();push("\nendobj\n");};
+  const n=jpgs.length,PW=595.28,PH=841.89,cs=`q ${PW} 0 0 ${PH} 0 0 cm /Im0 Do Q`;
+  push("%PDF-1.4\n%âãÏÓ\n");
+  obj(1,()=>push("<< /Type /Catalog /Pages 2 0 R >>"));
+  obj(2,()=>push(`<< /Type /Pages /Count ${n} /Kids [${jpgs.map((_,i)=>(3+3*i)+" 0 R").join(" ")}] >>`));
+  jpgs.forEach((j,i)=>{const p=3+3*i;
+    obj(p,()=>push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 ${p+2} 0 R >> >> /Contents ${p+1} 0 R >>`));
+    obj(p+1,()=>push(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+    obj(p+2,()=>{push(`<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${j.length} >>\nstream\n`);push(j);push("\nendstream");});});
+  const xo=off,tot=3+3*n;let xs=`xref\n0 ${tot}\n0000000000 65535 f \n`;for(let k=1;k<tot;k++)xs+=String(xref[k]).padStart(10,"0")+" 00000 n \n";
+  push(xs);push(`trailer\n<< /Size ${tot} /Root 1 0 R >>\nstartxref\n${xo}\n%%EOF\n`);
+  return new Blob(parts,{type:"application/pdf"});}
+async function pdfSave(blob,fn){
+  let dl=null;try{dl=(window.claude&&window.claude.use)?await window.claude.use("downloads"):null;}catch(e){dl=null;}
+  if(dl){await dl.save({filename:fn,data:blob});return;}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);}
+async function pdfExport(blocks,label,btn){
+  if(!blocks.length)return;if(btn&&btn.dataset.busy)return;const old=btn?btn.textContent:"";if(btn){btn.dataset.busy="1";btn.disabled=true;btn.textContent="產生 PDF 中…";}
+  try{const now=new Date(),stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}`;
+    const base=String(document.title||"網站").replace(/[\\/:*?"<>|]/g,"_");
+    const {pages,W,H}=await pdfRender(blocks,`${base}　${label}`,`共 ${blocks.length} 題・${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} 輸出`,(i,n)=>{if(btn)btn.textContent=`排版中 ${i}／${n}`;});
+    if(btn)btn.textContent="壓縮中…";const blob=await pdfBuild(pages,W,H);
+    await pdfSave(blob,`${base}_${label}_${stamp}.pdf`);toast(`已產生 PDF（${pages.length} 頁）`,2200);}
+  catch(e){toast(e&&e.code==="declined"?"已取消下載":"PDF 產生失敗，請稍後再試",2200);}
+  finally{if(btn){delete btn.dataset.busy;btn.disabled=false;btn.textContent=old;}}}
+function pdfBlocksQ(qs){return qs.map((q,i)=>{const b=[],wt=wrongTimes(q.id);
+  b.push({t:"h",s:`${i+1}.　${UNITS[q.u][0]} ${UNITS[q.u][1]}${isW(q)?"　（非選題）":q.m?"　（多選）":""}`});
+  b.push({t:"sm",s:"出處："+q.src.map(srcOf).join("；")+(wt?`　・錯 ${wt} 次`:"")});
+  b.push({t:"p",s:q.q});(q.img||[]).filter(s=>/^data:image\//.test(s)).forEach(s=>b.push({t:"img",s}));
+  if(isW(q)){(q.ans||[]).forEach((a,k)=>b.push({t:"ok",s:`參考答案${q.ans.length>1?k+1:""}：${a}`}));(q.ansImg||[]).filter(s=>/^data:image\//.test(s)).forEach(s=>b.push({t:"img",s}));
+    if((q.kw||[]).length)b.push({t:"note",s:"關鍵字："+q.kw.join("、")});if((q.e||[]).length){b.push({t:"lab",s:"詳解"});q.e.forEach(e=>b.push({t:"ex",s:e}));}}
+  else{OPT(q).forEach((o,k)=>{const ok=(q.a||[]).includes(LET[k]);b.push({t:ok?"ok":"opt",s:`(${LET[k]}) ${o}${ok?"　✓":""}`});});
+    b.push({t:"lab",s:"答案："+(q.a||[]).join("、")+"　　詳解"});(q.e||[]).forEach((e,k)=>b.push({t:"ex",s:`(${LET[k]}) ${e}`}));}
+  if(q.k&&q.k["錯"])b.push({t:"note",s:"易混："+q.k["錯"]});if(q.n)b.push({t:"note",s:"註："+q.n});return b;});}
 function copyText(text,boxId){
   state.xopen[boxId]=text;render(true);
   const done=()=>toast("已複製",500,"copied");
@@ -761,6 +825,7 @@ function favsHTML(){
     <h2>⭐ 收藏本 <span class="muted mono" style="font-size:.9rem">${list.length} 題</span></h2>
     <div class="row">
       <button id="fExport" class="xbtn" ${n?"":"disabled"}>輸出勾選的收藏題（${n}）</button>
+      <button id="fPdf" class="xbtn" ${n?"":"disabled"}>下載 PDF（${n}）</button>
       <button id="fPractice" ${n?"":"disabled"}>練習勾選的題目</button>
       <button id="fRemove" ${n?"":"disabled"}>取消收藏勾選的題目</button>
       <button class="primary" data-home="1">回首頁</button>
@@ -795,6 +860,7 @@ function wrongsHTML(){
     <h2>錯題本 <span class="muted mono" style="font-size:.9rem">${list.length} 題</span></h2>
     <div class="row">
       <button id="wExport" class="xbtn" ${n?"":"disabled"}>輸出勾選的錯題（${n}）</button>
+      <button id="wPdf" class="xbtn" ${n?"":"disabled"}>下載 PDF（${n}）</button>
       <button id="wPractice" ${n?"":"disabled"}>練習勾選的題目</button>
       <button class="primary" data-home="1">回首頁</button>
     </div>
@@ -868,6 +934,7 @@ function bankHTML(){
     <h2>📚 完整題庫 <span class="muted mono" style="font-size:.9rem">${ids.length} 題・已勾 ${n}</span></h2>
     <div class="row">
       <button id="bExport" class="xbtn" ${n?"":"disabled"}>輸出勾選（${n}）</button>
+      <button id="bPdf" class="xbtn" ${n?"":"disabled"}>下載 PDF（${n}）</button>
       <button id="bFav" ${n?"":"disabled"}>☆ 收藏勾選</button>
       <button id="bUnfav" ${n?"":"disabled"}>取消收藏勾選</button>
       <button id="bPractice" ${n?"":"disabled"}>練習勾選</button>
@@ -951,7 +1018,7 @@ function reviewHTML(){
   </section>
   <div class="spread">
     <div class="chips"><button data-rf="all" class="${state.rf==="all"?"on":""}">全部題目</button><button data-rf="wrong" class="${state.rf==="wrong"?"on":""}">只看錯題（${wrongIds.length}）</button></div>
-    <div class="row">${wrongIds.length?`<button class="xbtn" id="exportRound">輸出這輪錯題（${wrongIds.length}）</button><button id="redoWrong">重練這輪錯題</button>`:""}<button class="primary" data-home="1">回到首頁</button></div>
+    <div class="row">${wrongIds.length?`<button class="xbtn" id="exportRound">輸出這輪錯題（${wrongIds.length}）</button><button class="xbtn" id="pdfRound">這輪錯題 PDF</button><button id="redoWrong">重練這輪錯題</button>`:""}<button class="primary" data-home="1">回到首頁</button></div>
   </div>
   ${xboxHTML("round")}
   ${items||`<p class="muted">${L.length?"這一輪沒有錯題。":"這一輪還沒有作答。"}</p>`}
@@ -1079,6 +1146,10 @@ document.addEventListener("click",e=>{
   if(b.id==="bUnfav"){const batch=[...state.bsel].filter(id=>FAV[id]).map(id=>({id,t:FAV[id]}));if(!batch.length){toast("勾選的題目都沒有收藏");return;}batch.forEach(x=>delete FAV[x.id]);state.favUndo.push(batch);saveSoon();render(true);toast(`已取消收藏 ${batch.length} 題（收藏本可按「↩ 復原」）`,2600);return;}
   if(b.id==="bPractice"){const ids=[...state.bsel];if(ids.length)startQuiz(ids);return;}
   if(b.id==="openWrongs"){state.screen="wrongs";state.xopen={};render();return;}
+  if(b.id==="wPdf"){const qs=QS.filter(q=>state.wsel.has(q.id)).sort((a,b)=>UORDER.indexOf(a.u)-UORDER.indexOf(b.u));pdfExport(pdfBlocksQ(qs),"錯題本",b);return;}
+  if(b.id==="fPdf"){const qs=QS.filter(q=>state.fsel.has(q.id)).sort((a,b)=>UORDER.indexOf(a.u)-UORDER.indexOf(b.u));pdfExport(pdfBlocksQ(qs),"收藏本",b);return;}
+  if(b.id==="bPdf"){const order=bankRows().map(r=>r.q.id);const ids=[...new Set([...order.filter(id=>state.bsel.has(id)),...state.bsel])];pdfExport(pdfBlocksQ(ids.map(id=>QS.find(q=>q.id===id)).filter(Boolean)),"題庫勾選",b);return;}
+  if(b.id==="pdfRound"){const qs=state.list.filter(q=>state.ans[q.id]&&state.ans[q.id].length&&!isRight(q,state.ans[q.id]));pdfExport(pdfBlocksQ(qs),"這輪錯題",b);return;}
   if(b.id==="wExport"){const qs=QS.filter(q=>state.wsel.has(q.id)).sort((a,b)=>UORDER.indexOf(a.u)-UORDER.indexOf(b.u));if(qs.length)copyText(exportText(qs),"wb");return;}
   if(b.id==="wPractice"){const ids=[...state.wsel];if(ids.length)startQuiz(ids);return;}
 });
