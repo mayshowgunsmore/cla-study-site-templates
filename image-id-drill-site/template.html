@@ -341,6 +341,12 @@ body.imgonly .inst h3{font-size:1rem}
 body.nodrill .star,body.nodrill .starb{display:none}
 body.noatlas .jump[data-act="jump"]{display:none}
 .pgrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.pgbox{margin-top:12px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px}.pgbox p{margin:0 0 8px}.pgmsg{margin:10px 0 0;color:var(--good)}.pgmsg.bad{color:var(--bad)}.pgmsg button{margin-left:6px}
+.pdfask{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.pdfask-card{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;max-width:440px;width:100%;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.pdfask-t{font-weight:800;font-size:1.05rem}.pdfask-s{margin:0;color:var(--muted);font-size:.88rem}
+.pdfask-o{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;min-height:44px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);color:var(--ink);font:inherit;cursor:pointer;width:100%}
+.pdfask-o b{font-size:.98rem}.pdfask-o span{font-size:.84rem;color:var(--muted);line-height:1.45}.pdfask-o:hover,.pdfask-o:focus-visible{border-color:var(--ink)}
+.pdfask-x{min-height:44px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--muted);font:inherit;cursor:pointer}
 </style>
 </head><body>
 <script id="site-data" type="application/json">__DATA__</script>
@@ -703,28 +709,55 @@ const chNo=id=>CH.indexOf(chOf(id))+1;
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 /* ---------- PDF export: canvas → JPEG → PDF, no library, works offline ---------- */
 const PDFF='"PingFang TC","Noto Sans TC","Microsoft JhengHei","Heiti TC","Noto Sans CJK TC",sans-serif';
-const PDFS={h:[30,800,"#1d3557",46,0],sm:[21,400,"#6b6b6b",32,0],p:[27,500,"#111",42,0],opt:[26,400,"#222",40,18],ok:[26,800,"#17803d",40,18],lab:[25,800,"#a86b00",40,0],ex:[23,400,"#333",35,18],note:[22,400,"#555",34,0]};
+const PDFS={h:[30,800,"#1d3557",46,0],sm:[21,400,"#6b6b6b",32,0],p:[27,500,"#111",42,0],opt:[26,400,"#222",40,18],ok:[26,800,"#17803d",40,18],lab:[25,800,"#a86b00",40,0],ex:[23,400,"#333",35,18],note:[22,400,"#555",34,0],key:[25,700,"#111",44,0]};
 function pdfWrap(ctx,s,maxW){const out=[];for(const para of String(s).split("\n")){const tk=para.match(/[A-Za-z0-9À-ɏͰ-Ͽ.,;:%'’+\-\/=<>]+|\s+|[\s\S]/gu)||[""];let line="";
   const pushTok=t=>{if(ctx.measureText(line+t).width<=maxW||!line.trim()){if(ctx.measureText(t).width>maxW&&!line.trim()){for(const c of t){if(ctx.measureText(line+c).width>maxW&&line){out.push(line);line="";}line+=c;}}else line+=t;}else{out.push(line.replace(/\s+$/,""));line=/^\s+$/.test(t)?"":t;}};
   tk.forEach(pushTok);out.push(line.replace(/\s+$/,""));}return out;}
 function pdfLoadImg(src){return new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=src;});}
-async function pdfRender(blocks,title,sub,onStep){
-  const W=1240,H=1754,M=100,CW=W-2*M,TOP=120,BOT=H-120,pages=[];let ctx,y;
-  const newPage=()=>{const c=document.createElement("canvas");c.width=W;c.height=H;ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);ctx.textBaseline="alphabetic";pages.push(c);y=TOP;};
+async function pdfRender(items,mode,title,sub,onStep){
+  const W=1240,H=1754,M=100,CW=W-2*M,TOP=120,BOT=H-120,pages=[],tags=[];let ctx,y,tag=mode==="split"?"題目卷":"";
+  const newPage=()=>{const c=document.createElement("canvas");c.width=W;c.height=H;ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);ctx.textBaseline="alphabetic";pages.push(c);tags.push(tag);y=TOP;};
   const font=k=>`${PDFS[k][1]} ${PDFS[k][0]}px ${PDFF}`;
+  const sep=()=>{ctx.strokeStyle="#d9d9d9";ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(M,y+8);ctx.lineTo(W-M,y+8);ctx.stroke();y+=30;};
+  const IMC=new Map(),img=async s=>{if(!IMC.has(s))IMC.set(s,await pdfLoadImg(s));return IMC.get(s);};
+  const isz=(im,b)=>{let w=Math.min(CW,im.naturalWidth*1.6),h=im.naturalHeight*w/im.naturalWidth;const mh=(mode==="split"&&b.hs)||b.h||700;if(h>mh){h=mh;w=im.naturalWidth*h/im.naturalHeight;}return [w,h];};
+  const LH=60,lnH=L=>L.reduce((t,l)=>t+38+LH*(l.n||1)+18,0);
+  const hOf=async b=>{if(b.t==="img"){const im=await img(b.s);return im?isz(im,b)[1]+20:0;}
+    if(b.t==="imgl"){const im=await img(b.s);if(!im)return lnH(b.lines);const r=Math.min(1,CW*0.56/isz(im,b)[0]);return Math.max(isz(im,b)[1]*r+20,lnH(b.lines));}if(b.t==="line")return (b.s?38:0)+60*(b.n||1)+18;if(b.t==="box")return 80;if(b.t==="cut")return 66;
+    ctx.font=font(b.t);return pdfWrap(ctx,b.s,CW-PDFS[b.t][4]).length*PDFS[b.t][3]+(b.t==="h"?2:6);};
+  const keep=async(bs,extra)=>{let h=extra||0;for(const b of bs)h+=await hOf(b);if(y+h>BOT&&h<=BOT-TOP){newPage();return true;}return false;};
+  const draw=async b=>{
+    if(b.t==="img"){const im=await img(b.s);if(!im)return;const [w,h]=isz(im,b);if(y+h>BOT)newPage();ctx.drawImage(im,M,y+8,w,h);y+=h+20;return;}
+    if(b.t==="imgl"){const im=await img(b.s);if(!im){for(const l of b.lines)await draw({t:"line",s:l.s,n:l.n});return;}
+      let [w,h]=isz(im,b);const r=Math.min(1,CW*0.56/w);w*=r;h*=r;const lh=lnH(b.lines);if(y+Math.max(h+20,lh)>BOT)newPage();ctx.drawImage(im,M,y+8,w,h);
+      const x0=M+w+36,y0=y;let yy=y;ctx.setLineDash([]);for(const l of b.lines){ctx.font=font("lab");ctx.fillStyle=PDFS.lab[2];ctx.fillText(l.s,x0,yy+28);yy+=38;ctx.strokeStyle="#b5b5b5";ctx.lineWidth=1.5;
+        for(let k=0;k<(l.n||1);k++){yy+=LH;ctx.beginPath();ctx.moveTo(x0,yy);ctx.lineTo(W-M,yy);ctx.stroke();}yy+=18;}
+      y=y0+Math.max(h+20,lh);return;}
+    if(b.t==="line"){const n=b.n||1,lh=60;if(y+(b.s?40:0)+lh*n+14>BOT)newPage();if(b.s){ctx.font=font("lab");ctx.fillStyle=PDFS.lab[2];ctx.fillText(b.s,M,y+28);y+=38;}
+      ctx.strokeStyle="#b5b5b5";ctx.lineWidth=1.5;ctx.setLineDash([]);for(let k=0;k<n;k++){y+=lh;ctx.beginPath();ctx.moveTo(M,y);ctx.lineTo(W-M,y);ctx.stroke();}y+=18;return;}
+    if(b.t==="box"){if(y+84>BOT)newPage();ctx.font=font("lab");ctx.fillStyle=PDFS.lab[2];const s=b.s+"：";ctx.fillText(s,M,y+46);const tw=ctx.measureText(s).width;ctx.strokeStyle="#9a9a9a";ctx.lineWidth=2;ctx.setLineDash([]);ctx.strokeRect(M+tw+12,y+8,260,58);y+=80;return;}
+    if(b.t==="cut"){if(y+70>BOT)newPage();const ly=y+30,tx="以下是答案（摺起或用紙遮住，自己答完再看）";ctx.font=`700 22px ${PDFF}`;const tw=ctx.measureText(tx).width;
+      ctx.save();ctx.setLineDash([14,10]);ctx.strokeStyle="#8a8a8a";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(W/2-tw/2-18,ly);ctx.moveTo(W/2+tw/2+18,ly);ctx.lineTo(W,ly);ctx.stroke();ctx.restore();
+      ctx.fillStyle="#6b6b6b";ctx.textAlign="center";ctx.fillText(tx,W/2,ly+8);ctx.textAlign="left";y+=66;return;}
+    const [fs,,col,lh,ind]=PDFS[b.t];ctx.font=font(b.t);const ls=pdfWrap(ctx,b.s,CW-ind);
+    for(let i=0;i<ls.length;i++){if(y+lh>BOT){newPage();ctx.font=font(b.t);}ctx.fillStyle=col;ctx.fillText(ls[i],M+(i?ind:0),y+fs);y+=lh;}
+    y+=b.t==="h"?2:6;};
+  const step=async qi=>{if(onStep&&qi%8===7){onStep(qi+1,items.length);await new Promise(r=>setTimeout(r,0));}};
   newPage();ctx.fillStyle="#1d3557";ctx.font=`800 40px ${PDFF}`;pdfWrap(ctx,title,CW).forEach(l=>{ctx.fillText(l,M,y+40);y+=54;});
-  ctx.fillStyle="#6b6b6b";ctx.font=`400 24px ${PDFF}`;ctx.fillText(sub,M,y+28);y+=56;
-  for(let qi=0;qi<blocks.length;qi++){
-    const qb=blocks[qi];if(qi&&y>BOT-260)newPage();
-    if(qi){ctx.strokeStyle="#d9d9d9";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(M,y+8);ctx.lineTo(W-M,y+8);ctx.stroke();y+=30;}
-    for(const b of qb){
-      if(b.t==="img"){const im=await pdfLoadImg(b.s);if(!im)continue;let w=Math.min(CW,im.naturalWidth*1.6),h=im.naturalHeight*w/im.naturalWidth;if(h>700){h=700;w=im.naturalWidth*h/im.naturalHeight;}if(y+h>BOT)newPage();ctx.drawImage(im,M,y+8,w,h);y+=h+20;continue;}
-      const [fs,,col,lh,ind]=PDFS[b.t];ctx.font=font(b.t);const ls=pdfWrap(ctx,b.s,CW-ind);
-      for(let i=0;i<ls.length;i++){if(y+lh>BOT){newPage();ctx.font=font(b.t);}ctx.fillStyle=col;ctx.fillText(ls[i],M+(i?ind:0),y+fs);y+=lh;}
-      y+=b.t==="h"?2:6;}
-    y+=14;if(onStep&&qi%8===7){onStep(qi+1,blocks.length);await new Promise(r=>setTimeout(r,0));}
-  }
-  pages.forEach((c,i)=>{const x=c.getContext("2d");x.font=`400 20px ${PDFF}`;x.fillStyle="#9a9a9a";x.textAlign="center";x.fillText(`${title}　·　${i+1} / ${pages.length}`,W/2,H-60);});
+  ctx.fillStyle="#6b6b6b";ctx.font=`400 24px ${PDFF}`;pdfWrap(ctx,sub,CW).forEach(l=>{ctx.fillText(l,M,y+28);y+=36;});y+=20;
+  for(let qi=0;qi<items.length;qi++){const it=items[qi],cut={t:"cut"};
+    const moved=mode==="split"?await keep(it.q,qi?30:0):(await keep([...it.q,cut,...it.a],qi?30:0)||await keep(it.q,qi?30:0));
+    if(qi&&!moved)sep();
+    for(const b of it.q)await draw(b);
+    if(mode!=="split"){await keep([cut,...it.a.slice(0,2)]);await draw(cut);for(const b of it.a)await draw(b);}
+    y+=14;await step(qi);}
+  if(mode==="split"){tag="解答";newPage();ctx.fillStyle="#1d3557";ctx.font=`800 40px ${PDFF}`;ctx.fillText("解答",M,y+40);y+=58;
+    ctx.fillStyle="#6b6b6b";ctx.font=`400 24px ${PDFF}`;ctx.fillText("先把前面的題目卷寫完，再翻到這裡對答案。",M,y+28);y+=52;
+    const keys=items.map((it,i)=>it.key?`${i+1}. ${it.key}`:null);
+    if(keys.some(Boolean)){await draw({t:"lab",s:"答案速查"});const cols=6,cw=CW/cols;ctx.font=font("key");
+      for(let i=0;i<keys.length;i++){if(i%cols===0){if(y+44>BOT){newPage();ctx.font=font("key");}y+=44;}ctx.fillStyle=keys[i]?"#111":"#9a9a9a";ctx.fillText(keys[i]||`${i+1}. 詳解`,M+(i%cols)*cw,y);}y+=34;sep();}
+    for(let qi=0;qi<items.length;qi++){const it=items[qi],hd={t:"h",s:it.ah};if(!(await keep([hd,...it.a],qi?30:0))&&qi)sep();await draw(hd);for(const b of it.a)await draw(b);y+=14;await step(qi);}}
+  pages.forEach((c,i)=>{const x=c.getContext("2d");x.font=`400 20px ${PDFF}`;x.fillStyle="#9a9a9a";x.textAlign="center";x.fillText(`${title}${tags[i]?"　·　"+tags[i]:""}　·　${i+1} / ${pages.length}`,W/2,H-60);});
   return {pages,W,H};}
 async function pdfBuild(pages,W,H){
   const jpgs=[];for(const c of pages){const bl=await new Promise(r=>{try{c.toBlob(r,"image/jpeg",0.8);}catch(e){r(null);}});
@@ -746,21 +779,32 @@ async function pdfSave(blob,fn){
   let dl=null;try{dl=(window.claude&&window.claude.use)?await window.claude.use("downloads"):null;}catch(e){dl=null;}
   if(dl){await dl.save({filename:fn,data:blob});return;}
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);}
-async function pdfExport(blocks,label,btn){
-  if(!blocks.length)return;if(btn&&btn.dataset.busy)return;const old=btn?btn.textContent:"";if(btn){btn.dataset.busy="1";btn.disabled=true;btn.textContent="產生 PDF 中…";}
+function pdfAsk(n){return new Promise(res=>{if(document.querySelector(".pdfask"))return res(null);
+  const d=document.createElement("div");d.className="pdfask";d.setAttribute("role","dialog");d.setAttribute("aria-modal","true");
+  d.innerHTML=`<div class="pdfask-card"><div class="pdfask-t">下載 PDF（${n} 題）・選擇排版</div><p class="pdfask-s">兩種都是自我測驗用：先看題目自己答，再對答案。</p>
+  <button type="button" class="pdfask-o" data-m="split"><b>考卷＋解答分開</b><span>前面是題目卷（遮標註的圖＋作答線），名稱、含標註的原圖與重點另起一頁集中在最後。</span></button>
+  <button type="button" class="pdfask-o" data-m="fold"><b>題目與答案同頁</b><span>每題的答案在虛線下方，摺起或用紙遮住，自己答完再看。</span></button>
+  <button type="button" class="pdfask-x" data-m="">取消</button></div>`;
+  const done=m=>{d.remove();document.removeEventListener("keydown",kd);res(m||null);};const kd=e=>{if(e.key==="Escape")done(null);};
+  d.addEventListener("click",e=>{const b=e.target.closest("[data-m]");if(b)done(b.dataset.m);else if(e.target===d)done(null);});
+  document.addEventListener("keydown",kd);document.body.appendChild(d);const f=d.querySelector(".pdfask-o");if(f)f.focus();});}
+async function pdfExport(items,label,btn){
+  if(!items.length)return;if(btn&&btn.dataset.busy)return;const mode=await pdfAsk(items.length);if(!mode)return;
+  const old=btn?btn.textContent:"";if(btn){btn.dataset.busy="1";btn.disabled=true;btn.textContent="產生 PDF 中…";}
   try{const now=new Date(),stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}`;
-    const base=String(document.title||"網站").replace(/[\\/:*?"<>|]/g,"_");
-    const {pages,W,H}=await pdfRender(blocks,`${base}　${label}`,`共 ${blocks.length} 題・${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} 輸出`,(i,n)=>{if(btn)btn.textContent=`排版中 ${i}／${n}`;});
+    const base=String(document.title||"網站").replace(/[\\/:*?"<>|]/g,"_"),ml=mode==="split"?"考卷＋解答":"摺線自測";
+    const {pages,W,H}=await pdfRender(items,mode,`${base}　${label}`,`共 ${items.length} 題・${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} 輸出・自我測驗（${mode==="split"?"考卷＋解答分開":"答案在虛線下方"}）`,(i,n)=>{if(btn)btn.textContent=`排版中 ${i}／${n}`;});
     if(btn)btn.textContent="壓縮中…";const blob=await pdfBuild(pages,W,H);
-    await pdfSave(blob,`${base}_${label}_${stamp}.pdf`);toast(`已產生 PDF（${pages.length} 頁）`,2200);}
+    await pdfSave(blob,`${base}_${label}_${ml}_${stamp}.pdf`);toast(`已產生 PDF（${pages.length} 頁）`,2200);}
   catch(e){toast(e&&e.code==="declined"?"已取消下載":"PDF 產生失敗，請稍後再試",2200);}
   finally{if(btn){delete btn.dataset.busy;btn.disabled=false;btn.textContent=old;}}}
-function pdfBlocksI(ids){return ids.map((id,i)=>{const it=I[id],p=S.rec[RK(id)],c=chOf(id),b=[];
-  b.push({t:"h",s:`${i+1}.　${NMp(it)}`});b.push({t:"sm",s:`第 ${chNo(id)} 章 ${c.t}　・　${p?`錯 ${p.w} 次，最近一次${p.l===1?"答對":"答錯"}`:"還沒練過"}`});
-  b.push({t:"img",s:figSrc(it.orig||it.img)});
-  if((it.f||[]).length){b.push({t:"lab",s:LBL.f});it.f.forEach(x=>b.push({t:"ex",s:"・"+plainTxt(x)}));}
-  if((it.c||[]).length){b.push({t:"lab",s:LBL.c});it.c.forEach(x=>b.push({t:"ex",s:"・"+plainTxt(x)}));}
-  return b;});}
+function pdfBlocksI(ids){return ids.map((id,i)=>{const it=I[id],p=S.rec[RK(id)],c=chOf(id),b=[],a=[];
+  b.push({t:"h",s:`${i+1}.　第 ${chNo(id)} 章 ${c.t}`});b.push({t:"sm",s:p?`錯 ${p.w} 次，最近一次${p.l===1?"答對":"答錯"}`:"還沒練過"});
+  if(LBL.question)b.push({t:"p",s:LBL.question});b.push({t:"imgl",s:figSrc(it.img),h:460,lines:[{s:LBL.item+"名稱",n:1}].concat((it.f||[]).length?[{s:LBL.f,n:3}]:[])});
+  a.push({t:"ok",s:`${LBL.item}名稱：${NMp(it)}`});if(it.orig&&it.orig!==it.img)a.push({t:"img",s:figSrc(it.orig),h:380});
+  if((it.f||[]).length){a.push({t:"lab",s:LBL.f});it.f.forEach(x=>a.push({t:"ex",s:"・"+plainTxt(x)}));}
+  if((it.c||[]).length){a.push({t:"lab",s:LBL.c});it.c.forEach(x=>a.push({t:"ex",s:"・"+plainTxt(x)}));}
+  return {q:b,a,ah:`${i+1}.　第 ${chNo(id)} 章 ${c.t}`,key:null};});}
 function copyText(t){const ok=()=>toast("已複製",500,"copied"),no=()=>toast("已展開文字，請自行選取複製");
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok).catch(no);else no();}
 function outText(ids){return ids.map(id=>{const it=I[id],p=S.rec[RK(id)],c=chOf(id);
@@ -806,7 +850,7 @@ function bookEntry(){const nW=wrongSet().length,nS=starSet().length;
       <li><b>整輪輸出</b>：一輪結束後，在總檢討按「輸出這輪錯題」。</li>
       <li><b>挑題輸出</b>：按「查看錯題本」，勾選後按「輸出勾選的錯題」。</li>
       <li><b>收藏本輸出</b>：按「⭐ 收藏本」，勾選後按「輸出勾選的收藏」；按錯取消收藏可以按「↩ 復原」。</li>
-      <li><b>下載 PDF</b>：錯題本、收藏本勾選後，以及總檢討的這輪錯題，都可以按「下載 PDF」，把圖（含標註的原圖）、${LBL.item}名稱、${LBL.f}與${LBL.c}排成 A4 PDF，可列印或存到平板；不需要網路，離線版也能用。</li></ol>
+      <li><b>下載 PDF</b>：錯題本、收藏本勾選後，以及總檢討的這輪錯題，都可以按「下載 PDF」，排成 A4 自我測驗 PDF，下載前選排版：「考卷＋解答分開」（前面是遮標註的圖與作答線，${LBL.item}名稱、含標註的原圖、${LBL.f}與${LBL.c}另起一頁放最後）或「題目與答案同頁」（答案在每題的虛線下方，摺起或遮住再看）；可列印或存到平板；不需要網路，離線版也能用。</li></ol>
       <p class="muted" style="margin:6px 0 0;font-size:.88rem">按下後文字會自動複製並跳出「已複製」，下方也會展開文字。每題包含章節、${LBL.item}名稱、${LBL.f}、${LBL.c}與作答紀錄，前後用一行 === 隔開，可以直接貼到筆記或問 AI。</p></details></section>`;}
 function drillSetup(){
   const sel=selIds(),selNew=sel.filter(i=>!S.rec[RK(i)]).length,selDue=sel.filter(isDue).length,nS=starSet().length,nNW=nowWrong().length,nRec=modeKeys().length;
