@@ -799,12 +799,12 @@ async function pdfExport(items,label,btn){
   catch(e){toast(e&&e.code==="declined"?"已取消下載":"PDF 產生失敗，請稍後再試",2200);}
   finally{if(btn){delete btn.dataset.busy;btn.disabled=false;btn.textContent=old;}}}
 function pdfBlocksI(ids){return ids.map((id,i)=>{const it=I[id],p=S.rec[RK(id)],c=chOf(id),b=[],a=[];
-  b.push({t:"h",s:`${i+1}.　第 ${chNo(id)} 章 ${c.t}`});b.push({t:"sm",s:p?`錯 ${p.w} 次，最近一次${p.l===1?"答對":"答錯"}`:"還沒練過"});
+  b.push({t:"h",s:`${i+1}.`});
   if(LBL.question)b.push({t:"p",s:LBL.question});b.push({t:"imgl",s:figSrc(it.img),h:460,lines:[{s:LBL.item+"名稱",n:1}].concat((it.f||[]).length?[{s:LBL.f,n:3}]:[])});
-  a.push({t:"ok",s:`${LBL.item}名稱：${NMp(it)}`});if(it.orig&&it.orig!==it.img)a.push({t:"img",s:figSrc(it.orig),h:380});
+  a.push({t:"sm",s:`第 ${chNo(id)} 章 ${c.t}　・${p?`錯 ${p.w} 次，最近一次${p.l===1?"答對":"答錯"}`:"還沒練過"}`});a.push({t:"ok",s:`${LBL.item}名稱：${NMp(it)}`});if(it.orig&&it.orig!==it.img)a.push({t:"img",s:figSrc(it.orig),h:380});
   if((it.f||[]).length){a.push({t:"lab",s:LBL.f});it.f.forEach(x=>a.push({t:"ex",s:"・"+plainTxt(x)}));}
   if((it.c||[]).length){a.push({t:"lab",s:LBL.c});it.c.forEach(x=>a.push({t:"ex",s:"・"+plainTxt(x)}));}
-  return {q:b,a,ah:`${i+1}.　第 ${chNo(id)} 章 ${c.t}`,key:null};});}
+  return {q:b,a,ah:`${i+1}.`,key:null};});}
 function copyText(t){const ok=()=>toast("已複製",500,"copied"),no=()=>toast("已展開文字，請自行選取複製");
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok).catch(no);else no();}
 function outText(ids){return ids.map(id=>{const it=I[id],p=S.rec[RK(id)],c=chOf(id);

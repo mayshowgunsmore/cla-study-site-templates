@@ -832,8 +832,8 @@ async function pdfExport(items,label,btn){
     await pdfSave(blob,`${base}_${label}_${ml}_${stamp}.pdf`);toast(`已產生 PDF（${pages.length} 頁）`,2200);}
   catch(e){toast(e&&e.code==="declined"?"已取消下載":"PDF 產生失敗，請稍後再試",2200);}
   finally{if(btn){delete btn.dataset.busy;btn.disabled=false;btn.textContent=old;}}}
-function pdfBlocksQ(qs){return qs.map((q,i)=>{const b=[],a=[],wt=wrongTimes(q.id),hd=`${i+1}.　${UNITS[q.u][0]} ${UNITS[q.u][1]}${isW(q)?"　（非選題）":q.m?"　（多選）":""}`;
-  b.push({t:"h",s:hd});b.push({t:"sm",s:"出處："+q.src.map(srcOf).join("；")+(wt?`　・錯 ${wt} 次`:"")});
+function pdfBlocksQ(qs){return qs.map((q,i)=>{const b=[],a=[],wt=wrongTimes(q.id),hd=`${i+1}.${isW(q)?"　（非選題）":q.m?"　（多選）":""}`;
+  b.push({t:"h",s:hd});a.push({t:"sm",s:`${UNITS[q.u][0]} ${UNITS[q.u][1]}　・出處：`+q.src.map(srcOf).join("；")+(wt?`　・錯 ${wt} 次`:"")});
   b.push({t:"p",s:q.q});(q.img||[]).filter(s=>/^data:image\//.test(s)).forEach(s=>b.push({t:"img",s}));
   if(isW(q)){b.push({t:"line",s:"作答",n:Math.min(10,Math.max(4,(q.ans||[]).length*2))});
     (q.ans||[]).forEach((x,k)=>a.push({t:"ok",s:`參考答案${q.ans.length>1?k+1:""}：${x}`}));(q.ansImg||[]).filter(s=>/^data:image\//.test(s)).forEach(s=>a.push({t:"img",s}));
