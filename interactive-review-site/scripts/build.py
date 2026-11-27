@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Assemble a review site: template + data.json + theme.css (+ prompt.md) -> single HTML.
-usage: build.py TEMPLATE DATA.json THEME.css OUT.html [--prompt PROMPT.md]
+usage: build.py TEMPLATE DATA.json THEME.css OUT.html [--prompt PROMPT.md] [--schema SCHEMA.md]
+--schema 只在提示詞含 {{SCHEMA}}、而規範檔不在預設位置時才需要指定。
 TEMPLATE can be assets/template.html or a template.html exported from any site ("下載網站模板")."""
 import sys,re,json,subprocess,os
-a=sys.argv[1:]; pr=None
+a=sys.argv[1:]; pr=None; sch=None
 if '--prompt' in a: i=a.index('--prompt'); pr=a[i+1]; del a[i:i+2]
+if '--schema' in a: i=a.index('--schema'); sch=a[i+1]; del a[i:i+2]
 tpl,dp,tp,out=a
 t=open(tpl,encoding='utf-8').read(); D=json.load(open(dp,encoding='utf-8')); theme=open(tp,encoding='utf-8').read()
 here=os.path.dirname(os.path.abspath(__file__))
@@ -21,7 +23,14 @@ t=sub(r'(?<=<title>).*?(?=</title>)',title,t)
 if pr:
     txt=open(pr,encoding='utf-8').read()
     if '{{SCHEMA}}' in txt:
-        txt=txt.replace('{{SCHEMA}}',open(os.path.join(here,'..','references','schema.md'),encoding='utf-8').read().strip())
+        # 規範檔的位置依發布處而異：技能／正本 repo 用 references/schema.md，
+        # 公開通用版用上一層的 data-json規範.md；都找不到時可用 --schema 明指。
+        cands=[sch] if sch else [os.path.join(here,'..','references','schema.md'),
+                                 os.path.join(here,'..','data-json規範.md'),
+                                 os.path.join(here,'..','schema.md')]
+        sp=next((c for c in cands if c and os.path.exists(c)),None)
+        if not sp: sys.exit('找不到規範檔（references/schema.md 或 data-json規範.md），請用 --schema 指定路徑')
+        txt=txt.replace('{{SCHEMA}}',open(sp,encoding='utf-8').read().strip())
     p=json.dumps(txt,ensure_ascii=False).replace('</','<\\/').replace('<!--','\\u003c!--').replace('<script','\\u003cscript')
     t=sub(r'(?<=/\*PROMPT\*/).*?(?=/\*/PROMPT\*/)',p,t)
 open(out,'w',encoding='utf-8').write(t)
